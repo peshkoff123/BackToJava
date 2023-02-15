@@ -35,64 +35,7 @@ package com.peshkoff;
 *   - App level with two data models( ins/update/del -> writeDataModel -asyncUpdate-> readDataModel -> read)
 * - CQRS/ES vs CRUD
 *
-*
 * */
-// ________________________________ CoreJava
-/* - switch( type): byte, short, int, and wrappers, String, Enum
- * - Wrappers implement Serializable, Comparable; Number - super for all digitals
- * - Arrays.asList( T[] tArr)
- * - java.lang.reflect. Method, Constructor, Field, Modifier, Parameter
- * - Clone obj:-impl Cloneable + Object.clone()-shallowCloning;- copyConstructor;-Serialization
- * - Marshalling - passing code( Class) + Serialization (fieldValues)
- * - abstract Class without methods - Yes
- * - MultyThreads (AtomicityVisibilityOrdering)
- *   volatile - ensure only propagation of variableValue for all CPU_cores, does not use CPU cache
- *     and use main memory. Guarantees visibility and ordering - prevents compiler of reordering code.
- *     NOT guarantees atomicity. Applicable for all vars and refs.
- *   CompareAndSwap - java.util.concurrent.atomic
- *     uses special native code activate CPU lock, it makes criticalSection shorter.
- * - LinkedHashSet - doubleLinked HashSet to keep elements order
- * - LinkedHashMap - doubleLinked HashMap to keep elements order
- * - Immutable obj: final class, private final fields, getters ret copy of fields( not refs);
- *                  good for HashMap(Table) due to unchanged hashCode, thread-safe
- * - Optional - objWrapper, rid of checks "== null", used in Streams
- * - Boxing/Unboxing - only for exact correspondence ( byte<->byte, int<->Integer)
- * - array[] extends Object
- * - Templates/Patterns
- *   <>-- aggregation/ManyToMany; <*>-- composition/OneToMany; <-- dependency/OneToOne; <<-- inheritance
- *   - Creational:
- *      AbstractFactory: ProductInterface(N) ->> ProductClass(N*M); FactoryInterface(1) ->> FactoryClass(M)
- *      Builder:         BuilderInterface --<> Obj; DirectorClass --<*> BuilderInterface
- *                       Obj; Builder.setProp( Obj); Director.setPackProp( Builder)
- *      FactoryMethod:   AbstractFactory with single method
- *      Prototype:       copy = obj.clone()
- *      Singletone:
- *   - Structural:
- *      Adapter:   AbstractAdapter ext Obj_Result -->> AdapterClass ext Obj_Result,-->Obj_Source
- *      Proxy:     AbstractService -->> Service
- *                                 -->> Proxy --> Service
- *      Bridge:    Replace inheritance with aggregation/composition
- *      Composite: Tree: ComponentInterface -->> CompositeComponent
- *                                          -->> LeafComponent
- *      Decorator: Wrapper: example - clothes: Decor_N --> ... --> Decor_0 --> BaseObj
- *      Facade:    ComplicatedFramework <-> Facade <-> myApp; easy/restricted access to difficult subSystem
- *      Flyweight: ObjState: flyweight/OutsideState( changeable) + heavyweight/InnerState( unchangeable/Cache)
- *   - Behavioral
- *      ChainOfResponsibility/Command: RequestObj -> Handler_1 --> ..--> Handler_N
- *      Command/Action:      command/methodCall => RequestObject( CommandObj, EventObj)
- *      Iterator:            to implement a way of iteration of collection separately from the collection
- *      Mediator/Dispatcher: example - DispatcherServlet
- *      Memento/Snapshot/Version:
- *      Observer/Publisher-Subscriber/EventListener/ChangeListener
- *      State:               MainClass::State <-- AbstractStateDependentClass + implementations
- *      Strategy:            MainClass <-- AbstractStrategy + implementations
- *      TemplateMethod:      MainClass::BaseAlgorithm <-- AbstractClassesUsedInBaseAlgorithm
- * - XML SAX SimpleApiXml - event based: tagStart(),tagEnd(); forward only; not editable
- *       DOM DocObjModel - load all Doc into treeStructure; editable; navigable
- *
- *
- * - ComplitableFuture
- */
 // ________________________________ HTTP
 /* https://developer.mozilla.org/ru/docs/Glossary/safe
 * - Идемпотентный метод - не меняет состояние сервера при множестве запросов но возврат может
@@ -110,6 +53,7 @@ package com.peshkoff;
 * - WebSocket - applicationLayerProtocol HTTP/1.1 done by TomCat or Jetty
 * - CAP - ConsistensyAvailabilityPartitionTolerance распредСистема в любое время может обеспечить не более 2-ч из 3-х
 * */
+
 // ________________________________ Test
 /* - Testing types
  *   Functional Testing:
