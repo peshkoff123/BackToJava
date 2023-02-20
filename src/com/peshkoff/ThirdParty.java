@@ -1,23 +1,35 @@
 package com.peshkoff;
+// ________________________________ HTTP
+/* https://developer.mozilla.org/ru/docs/Glossary/safe
+ * - Идемпотентный метод - не меняет состояние сервера при множестве запросов но возврат может
+ *       отличаться - получение данных или статистики
+ * - HTTP retCodes
+ *   - 100-199 - info
+ *   - 200-299 - success:    200 - OK
+ *   - 300-399 - redirect
+ *   - 400-499 - client error: 400 badRequest; 403 forbidden; 404 NotFound
+ *   - 500-599 - server error
+ * - JWT - JSON WebToken
+ *    header:  { "typ":"JWT", "alg":"HS256"}
+ *    payload: { "id","userName","role","inspire",..}
+ *    signature:"hashCode( header.payload)"
+ * - WebSocket - applicationLayerProtocol HTTP/1.1 done by TomCat or Jetty
+ * - CAP - ConsistensyAvailabilityPartitionTolerance распредСистема в любое время может обеспечить не более 2-ч из 3-х
+ * */
 // ________________________________ WEB
 /* HTTP Session: Establish TCP connection; 1-N. HTTP_request <-> HTTP_response;
-*
-*  request, session, application, websocket ???????
-*
-*  SOAP - simple object access protocol, official standard, XML wrapped into HTTP, FTP, SMTP.
-*
-*  REST - stands for representational state transfer. Set of design principals( architecture):
-*  Client-server
-*  Resource - data or functionality accessible by static URI
-*             HTTP methods PUT, GET, POST, DELETE
-*             PDF, TEXT, JSON, XML wrapped into HTTP package.
-*  Stateless - server doesn't keep history/state of client, each request is standalone.
-*  JAX-RS to annotate Java classes to create RESTful web services
-*  http://localhost:8080/greeting?name=User  ->  {"id":1,"content":"Hello, User!"}
-*
-*  DAO,DTO, POJO, JavaBean
-* */
-
+ *
+ *  SOAP - simple object access protocol, official standard, XML wrapped into HTTP, FTP, SMTP.
+ *
+ *  REST - stands for representational state transfer. Set of design principals( architecture):
+ *  Client-server
+ *  Resource - data or functionality accessible by static URI
+ *             HTTP methods PUT, GET, POST, DELETE
+ *             PDF, TEXT, JSON, XML wrapped into HTTP package.
+ *  Stateless - server doesn't keep history/state of client, each request is standalone.
+ *  JAX-RS to annotate Java classes to create RESTful web services
+ *  http://localhost:8080/greeting?name=User  ->  {"id":1,"content":"Hello, User!"}
+ * */
 // ________________________________ ApacheMaven
 /* Maven - framework, build tool, everything do plugins,
 *  Artifact - anyLib(jar) in repository.

@@ -312,7 +312,9 @@ public class CoreJava {}
  *
  * */
 // ________________________________ CoreJava Q_And_A
-/* - switch( type): byte, short, int, and wrappers, String, Enum
+/* - JVM memory:    Heap                        |    PermGen/MetaSpace
+ *     Eden -GC-> Survivor -GC-> OldGeneration  |  Classes + ClassLoaders( must be destroyed manually)
+ * - switch( type): byte, short, int, and wrappers, String, Enum
  * - Wrappers implement Serializable, Comparable; Number - super for all digitals
  * - Arrays.asList( T[] tArr)
  * - java.lang.reflect. Method, Constructor, Field, Modifier, Parameter
