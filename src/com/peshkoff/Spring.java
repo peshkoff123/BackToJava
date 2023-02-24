@@ -278,11 +278,31 @@ public class Spring {}
  *   JDK-proxy — dynamic proxy. based on separate interface. API встроены в JDK.
  *   CGLib proxy — third party. based on inheritance
  *
- * - @Transaction propagation уровни в транзакциях
  * - can we delete bean from container
  *   ((BeanDefinitionRegistry) beanFactory).removeBeanDefinition( "myBean");
  *   ((DefaultListableBeanFactory) beanFactory).destroySingleton( "myBean");
  *   ((SingletonBeanRegistry) beanFactory).registerSingleton( "myBean", myBeanInstance);
+ *
+ * - ConfigurableApplicationContext ext ApplicationContext
+ *    .doClose()                     // publishes ContextClosedEvent, destoy singletons
+ *    .close()                       // call .doClose(): destroy beans, close context syncronously
+ *    .registerShutdownHook()        // call .doClose() when JVM shutdown
+ *    .stop()                        // propagate stop signal to components - not close()!
+ *
+ * - Versioning REST_Api
+ *   - @GetMapping( value="/api", params="version=1")   // by reqParam
+ *   - @GetMapping( value="/api", headers="version=1")  // by headers
+ *   - @GetMapping( value="/api/V2")                    // by URL
+ *
+ * - REST security: session vs token - token( server - must be stateLess)
+ *
+ * - Content negotiation:
+ *   @GetMapping( "/api", consumes={ MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE},
+ *                         produce={ MediaType.APPLICATIO_JSON_VALUE} )
+ * - How to create custom validators in spring: create appropriate annotation,
+ *     class-validator impl ConstraineValidator
+ *
+ * - @Transaction propagation уровни в транзакциях
  * - SpringCloud?
  * */
 // ________________________________ Spring Security

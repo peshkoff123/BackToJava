@@ -329,6 +329,8 @@ public class CoreJava {}
  *     uses special native code activate CPU lock, it makes criticalSection shorter.
  * - LinkedHashSet - doubleLinked HashSet to keep elements order
  * - LinkedHashMap - doubleLinked HashMap to keep elements order
+ * - FailFast Iterator throws ConcurrentModificationException during iterating ( Lists, HashMap,..); may use Iterator.remove()
+ * - FailSafe Iterator - doesn't: Snapshots in CopyOnWriteArrayList; ConcurrentHashMap is weakly consistent
  * - Immutable obj: final class, private final fields, getters ret copy of fields( not refs);
  *                  good for HashMap(Table) due to unchanged hashCode, thread-safe
  * - Optional - objWrapper, rid of checks "== null", used in Streams
@@ -365,7 +367,8 @@ public class CoreJava {}
  *      TemplateMethod:      MainClass::BaseAlgorithm <-- AbstractClassesUsedInBaseAlgorithm
  * - XML SAX SimpleApiXml - event based: tagStart(),tagEnd(); forward only; not editable
  *       DOM DocObjModel - load all Doc into treeStructure; editable; navigable
- *
+ * - String.length() - ret "number of Unicode code units"; some of chars consists of two "code units"
+ *                     str.codePointCount( 0, str.length())
  *
  * - ComplitableFuture
  */

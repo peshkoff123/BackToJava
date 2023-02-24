@@ -21,6 +21,7 @@ public class LeetCodeTasks {
         LeetCode_Task5();
         LeetCode_Task91();
         LeetCode_Task322();
+        LeetCode_Task56();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -519,4 +520,89 @@ public class LeetCodeTasks {
       return false;
     }
 
+    //https://www.youtube.com/watch?v=qRz1PmIl7ds
+    public static void LeetCode_Task56() {
+        int[][] intervals = { {1,3}, {2,6}, {8,10}, {15,18}};
+        System.out.println( "mergeIntervals( "+intervalToStr( intervals)+") = "+
+                intervalToStr( merge( intervals)));
+        intervals = new int[][] { {1,3}, {2,7}, {4,7}, {8,15}, {15,18}};
+        System.out.println( "mergeIntervals( "+intervalToStr( intervals)+") = "+
+                intervalToStr( merge( intervals)));
+        intervals = new int[][]{ {1,4},{4,5}};
+        System.out.println( "mergeIntervals( "+intervalToStr( intervals)+") = "+
+                intervalToStr( merge( intervals)));
     }
+    public static String intervalToStr( int[][] intervals) {
+        String res = "";
+        for( int[] ints: intervals)
+            res += Arrays.toString( ints)+", ";
+        return res;
+    }
+    public static int[][] merge( int[][] intervals) {
+        ArrayList<int[]> intervalList = new ArrayList<>( intervals.length);
+        for( int[] ints: intervals)
+           intervalList.add( ints);
+        for( int i=0; i<intervalList.size(); i++) {
+            int[] a = intervalList.get( i);
+            for( int j=i+1; j<intervalList.size(); j++) {
+                int[] res = mergeIntervals(a, intervalList.get(j));
+                if( res != null) {
+                    a = res;
+                    intervalList.remove( j--);
+                }
+            }
+        }
+        int[][] resArr = new int[ intervalList.size()][];
+        for( int i=0; i<intervalList.size(); i++)
+            resArr[ i] = intervalList.get( i);
+
+        return resArr;
+    }
+    public static int[] mergeIntervals( int[] a, int[] b) {
+        if( a[0] > b[1] || a[1] < b[0]) return null;
+        a[ 0] = Math.min( a[0], b[0]);
+        a[ 1] = Math.max( a[1], b[1]);
+        return a;
+    }
+
+        //https://www.youtube.com/watch?v=0VM4HjQXGe0
+    private static int[] candidates;
+    private static int[] candidates_K;
+    private static int target;
+    private static String res_Task39;
+    public static void LeetCode_Task39() {
+        candidates = new int[] { 2, 3, 6, 7};   // distinct !!!
+        target = 7;
+        System.out.println( "combinationSum( "+Arrays.toString( candidates)+", "+target+") = "+
+                coinChange( candidates, target));
+
+    }
+
+    public static String combinationSum() {
+        Arrays.sort( candidates);
+        candidates_K = new int[ candidates.length];
+        res_Task39 = "[ ";
+        for( int i=0; i<candidates.length; i++)
+            _combinationSum( 0, i);
+
+        return res_Task39 + "]";
+    }
+    // [7,6,3,2]:7
+    //  0 0 0 1
+    public static void _combinationSum( int sum, int startIndex) {
+        while( (sum += candidates[ startIndex]*candidates_K[ startIndex]) < target) {
+            if( ++startIndex < candidates.length)
+                _combinationSum( sum, startIndex);
+            candidates_K[ startIndex]++;
+        }
+        if( sum > target) return;
+        candidates_K[ startIndex]++;
+        if( sum == target) {
+            res_Task39 += Arrays.toString( candidates_K);
+            return;
+        }
+        _combinationSum( sum, ++startIndex);
+        _combinationSum( sum, startIndex);
+    }
+
+}
