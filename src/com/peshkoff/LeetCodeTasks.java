@@ -565,7 +565,7 @@ public class LeetCodeTasks {
         return a;
     }
 
-        //https://www.youtube.com/watch?v=0VM4HjQXGe0
+    //https://www.youtube.com/watch?v=0VM4HjQXGe0
     private static int[] candidates;
     private static int[] candidates_K;
     private static int target;
@@ -574,35 +574,43 @@ public class LeetCodeTasks {
         candidates = new int[] { 2, 3, 6, 7};   // distinct !!!
         target = 7;
         System.out.println( "combinationSum( "+Arrays.toString( candidates)+", "+target+") = "+
-                coinChange( candidates, target));
+                combinationSum());
 
     }
-
     public static String combinationSum() {
         Arrays.sort( candidates);
-        candidates_K = new int[ candidates.length];
         res_Task39 = "[ ";
-        for( int i=0; i<candidates.length; i++)
-            _combinationSum( 0, i);
+        for( int i=0; i<candidates.length; i++) {
+            candidates_K = new int[ candidates.length];
+            candidates_K[ i] = 1;
+            res_Task39 += _combinationSum(0, i);
+        }
 
         return res_Task39 + "]";
     }
     // [7,6,3,2]:7
-    //  0 0 0 1
-    public static void _combinationSum( int sum, int startIndex) {
+    //  1 0 0 0
+    //  0 1 0 1
+    public static boolean _combinationSum( int sum, int startIndex) {
         while( (sum += candidates[ startIndex]*candidates_K[ startIndex]) < target) {
-            if( ++startIndex < candidates.length)
-                _combinationSum( sum, startIndex);
+            if( startIndex+1 < candidates.length)
+                if( _combinationSum( sum, startIndex+1))
+                    return true;
             candidates_K[ startIndex]++;
         }
-        if( sum > target) return;
-        candidates_K[ startIndex]++;
-        if( sum == target) {
-            res_Task39 += Arrays.toString( candidates_K);
-            return;
-        }
-        _combinationSum( sum, ++startIndex);
-        _combinationSum( sum, startIndex);
+        if( sum > target)
+            return false;
+
+        res_Task39 += combinationSumStr();
+        return true;
+    }
+    private static String combinationSumStr() {
+        String res = "";
+        for( int i=0; i<candidates.length; i++)
+          if( candidates_K[ i] > 0)
+            for( int j=0; j<candidates_K[ i]; j++)
+                res += candidates[ i] + ",";
+        return res;
     }
 
 }
