@@ -22,6 +22,7 @@ public class LeetCodeTasks {
         LeetCode_Task91();
         LeetCode_Task322();
         LeetCode_Task56();
+        LeetCode_Task39();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -571,43 +572,52 @@ public class LeetCodeTasks {
     private static int target;
     private static String res_Task39;
     public static void LeetCode_Task39() {
-        candidates = new int[] { 2, 3, 6, 7};   // distinct !!!
+        candidates = new int[] { 2, 3, 6, 7};   // sorted and distinct !!!
         target = 7;
-        System.out.println( "combinationSum( "+Arrays.toString( candidates)+", "+target+") = "+
-                combinationSum());
+        System.out.println( "combinationSum( "+Arrays.toString( candidates)+", "+target+") = "+combinationSum());
+
+        candidates = new int[] { 2, 3, 5};   // sorted and distinct !!!
+        target = 8;
+        System.out.println( "combinationSum( "+Arrays.toString( candidates)+", "+target+") = "+combinationSum());
+
+        candidates = new int[] { 2};   // sorted and distinct !!!
+        target = 1;
+        System.out.println( "combinationSum( "+Arrays.toString( candidates)+", "+target+") = "+combinationSum());
 
     }
     public static String combinationSum() {
-        Arrays.sort( candidates);
-        res_Task39 = "[ ";
-        for( int i=0; i<candidates.length; i++) {
-            candidates_K = new int[ candidates.length];
-            candidates_K[ i] = 1;
-            res_Task39 += _combinationSum(0, i);
-        }
+        res_Task39 = "";
+        candidates_K = new int[ candidates.length];
+        _combinationSum(candidates.length-1);
 
-        return res_Task39 + "]";
+        return "[ "+res_Task39 + "]";
     }
-    // [7,6,3,2]:7
-    //  1 0 0 0
+    // [2,3,6,7]:7
+    //  0 0 0 0
     //  0 1 0 1
-    public static boolean _combinationSum( int sum, int startIndex) {
-        while( (sum += candidates[ startIndex]*candidates_K[ startIndex]) < target) {
-            if( startIndex+1 < candidates.length)
-                if( _combinationSum( sum, startIndex+1))
-                    return true;
+    public static void _combinationSum( int startIndex) {
+        int sum = -1;
+        do {
+            if( startIndex-1 >= 0) {
+                _combinationSum(startIndex - 1);
+                candidates_K[ startIndex-1] = 0;
+            }
             candidates_K[ startIndex]++;
-        }
+        } while( (sum=calcSum()) < target);
         if( sum > target)
-            return false;
+            return;
 
-        res_Task39 += combinationSumStr();
-        return true;
+        res_Task39 += "["+combinationSumStr()+"]";
+    }
+    private static int calcSum() {
+        int res = 0;
+        for( int i=0; i<candidates.length; i++)
+           res += candidates[ i]*candidates_K[ i];
+        return res;
     }
     private static String combinationSumStr() {
         String res = "";
         for( int i=0; i<candidates.length; i++)
-          if( candidates_K[ i] > 0)
             for( int j=0; j<candidates_K[ i]; j++)
                 res += candidates[ i] + ",";
         return res;
