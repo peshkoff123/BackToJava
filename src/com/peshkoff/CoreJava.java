@@ -320,6 +320,8 @@ public class CoreJava {}
  * - java.lang.reflect. Method, Constructor, Field, Modifier, Parameter
  * - Clone obj:-impl Cloneable + Object.clone()-shallowCloning;- copyConstructor;-Serialization
  * - Marshalling - passing code( Class) + Serialization (fieldValues)
+ * - serialVersionUID - added automatically at compile stage for class impl-s Serializable
+ *    private static final long serialVersionUID; declare manually to control it
  * - abstract Class without methods - Yes
  * - MultyThreads (AtomicityVisibilityOrdering)
  *   volatile - ensure only propagation of variableValue for all CPU_cores, does not use CPU cache

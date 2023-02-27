@@ -51,6 +51,7 @@ public class Spring {}
  *     }
  *  }
  *
+ *  //https://docs.spring.io/spring-framework/docs/4.1.0.RC2/spring-framework-reference/html/transaction.html
  *  @Transactional - marks method works with Connection/Transaction, informs Spring it need to open and then commit it.
  *  - propagation.
  *      MANDATORY - если есть текущая активная транзакция - выполняется в ней, иначе выбрасывается исключение
