@@ -4,10 +4,73 @@ public class Spring {}
 /** Spring - modular openSource for enterprise. Core - DI(IoC),MVC,AOP
  *
  *                             AspectOrientedProgramming
+ *   //https://habr.com/ru/post/428548/
+ *   Point - separate auxiliary code ( logging, timing, transaction, security) in own unit.
  *
- *  Proxy(Cglib proxy) - wrapper for user POJOs for transaction functionality.
- *  @Transactional - marks method works with Connection/Transaction, informs Spring it need to
- *                   open and then commit it.
+ *   Aspect — class for Pointcut and Advice.
+ *   Pointcut — what to proxy (Join point)
+ *   Advice - proxy-code (Pointcut)
+ *    Before — перед вызовом метода
+ *    After — после вызова метода
+ *    After returning — после возврата значения из функции
+ *    After throwing — в случае exception
+ *    After finally — в случае выполнения блока finally
+ *    Around — можно сделать пред., пост., обработку перед вызовом метода, а также вообще обойти вызов метода.
+ *
+ *   AOP proxy: an object-wrapper to implement the aspect contracts
+ *   (advise method executions and so on). AOP proxy will be a JDK dynamic proxy ( if exist any interface) or
+ *   a CGLIB proxy.
+ *   To force the use of CGLIB proxies set the value of the proxy-target-class attribute of the <aop:config> element to true
+ *   CTW (compile-time weaving) и LTW (load-time weaving).
+ *
+ *   @Service   public class MyService {
+ *      public void method1(List<String> list) {
+ *         list.add("method1");
+ *         System.out.println("MyService method1 list.size=" + list.size());
+ *     }
+ *     @AspectAnnotation public void method2() {
+ *         System.out.println("MyService method2");
+ *     }
+ *  }
+ *
+ *  @Aspect @Component   public class MyAspect {
+ *     private Logger logger = LoggerFactory.getLogger(this.getClass());
+ *
+ *     @Pointcut("execution(public * com.example.demoAspects.MyService.*(..))")
+ *     public void callAtMyServicePublic() { }
+ *
+ *     @Before("callAtMyServicePublic()")
+ *     public void beforeCallAtMethod1(JoinPoint jp) {
+ *         String args = Arrays.stream(jp.getArgs()).map(a -> a.toString()).collect( Collectors.joining(","));
+ *         logger.info("before " + jp.toString() + ", args=[" + args + "]");
+ *     }
+ *
+ *     @After("callAtMyServicePublic()")
+ *     public void afterCallAt(JoinPoint jp) {
+ *         logger.info("after " + jp.toString());
+ *     }
+ *  }
+ *
+ *  @Transactional - marks method works with Connection/Transaction, informs Spring it need to open and then commit it.
+ *  - propagation.
+ *      MANDATORY - если есть текущая активная транзакция - выполняется в ней, иначе выбрасывается исключение
+ *      NESTED - выполняется внутри вложенной транзакции, если есть активная, если нет активной - то аналогично REQUIRED
+ *      NEVER - выполняется вне транзакции, если есть активная - выбрасывается исключение
+ *      NOT_SUPPORTED - выполняется вне транзакции - если есть активная, она приостанавливается
+ *      REQUIRED - (по умолчанию) - если есть активная, то выполняется в ней, если нет, то создается новая транзакция
+ *      REQUIRES_NEW- всегда создается новая транзакция, если есть активная - то она приостанавливается
+ *      SUPPORTS - если есть активная - то выполняется в ней, если нет - то выполняется не транзакционно
+ *  Правила управления откатом
+ *  - noRollbackFor и noRollbackForClassName - определяет исключения, при которых транзакция НЕ будет откатана
+ *  - rollbackFor и rollbackForClassName - определяет исключения, при которых транзакция БУДЕТ откатана
+ *
+ *  TransactionManager markInterface
+ *  ReactiveTransactionManager impl TransactionManager
+ *  SystemTransactionManager impl TransactionManager {
+ *    TransactionStatus getTransaction()
+ *    void commit(TransactionStatus status)
+ *    void rollback(TransactionStatus status)
+ *  }
  *
  *                                   DI = IoC
  *
