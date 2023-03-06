@@ -5,8 +5,8 @@ public class Spring {}
  *
  *                             AspectOrientedProgramming
  *   //https://habr.com/ru/post/428548/
- *   Point - separate auxiliary code ( logging, timing, transaction, security) in own unit.
- *
+ *   Point - separate auxiliary code/Cross-cutting concerns (logging, timing, transaction, security) in own unit.
+ *   Cross-cutting concerns - aspects of program impacting different modules not being integral part of them.
  *   Aspect — class for Pointcut and Advice.
  *   Pointcut — what to proxy (Join point)
  *   Advice - proxy-code (Pointcut)
@@ -52,12 +52,15 @@ public class Spring {}
  *  }
  *
  *  //https://docs.spring.io/spring-framework/docs/4.1.0.RC2/spring-framework-reference/html/transaction.html
+ *  Declarative transaction - @Transactional
+ *  ProgrammaticTransaction - TransactionTemplate - intended Spring class.
  *  @Transactional - marks method works with Connection/Transaction, informs Spring it need to open and then commit it.
+ *                   applied for a class - all methods @Transactional
  *  - propagation.
- *      MANDATORY - если есть текущая активная транзакция - выполняется в ней, иначе выбрасывается исключение
+ *      MANDATORY - transaction must be already started, otherwise - Exception
  *      NESTED - выполняется внутри вложенной транзакции, если есть активная, если нет активной - то аналогично REQUIRED
- *      NEVER - выполняется вне транзакции, если есть активная - выбрасывается исключение
- *      NOT_SUPPORTED - выполняется вне транзакции - если есть активная, она приостанавливается
+ *      NEVER - выполняется вне транзакции, она приостанавливаетсяе
+ *      NOT_SUPPORTED - выполняется вне транзакции - если есть активная, если есть активная - выбрасывается исключени
  *      REQUIRED - (по умолчанию) - если есть активная, то выполняется в ней, если нет, то создается новая транзакция
  *      REQUIRES_NEW- всегда создается новая транзакция, если есть активная - то она приостанавливается
  *      SUPPORTS - если есть активная - то выполняется в ней, если нет - то выполняется не транзакционно
@@ -98,11 +101,11 @@ public class Spring {}
  * Stereotypes
  * - @Component - basic, for all Stereotypes classes
  * - @Configuration - JavaConfiguration + @Bean_methods
- * - @Contoller
+ * - @Contoller - @RequestMapping's allowed here ONLY
  * - @RestController - @Contoller + @ResponseBody
  * - @Service - for classes of business logic layer (service layer of app)
- * - @Repository - for classes of persistence layer
- *
+ * - @Repository - for classes of persistence layer; catch platform-specific Exceptions and re-thrown them as
+ *                 Spring's unchecked data access Exception
  *
  *  @Configuration
  *  @Configuration( basePackages = {"soundsystem", "video"})  ?
@@ -319,16 +322,32 @@ public class Spring {}
  *    globalSession( Portlet),
  *    webSocket - WebSocket: bidirectional, fullDuplex, persistent connection ( chat)
  *    Внедрять можно только singleton или prototype.
- * - javax.sql.DataSource interface; source of JDBC_connection; use @Bean + manual settings to configure it
+ * - javax.sql.DataSource interface; source of JDBC_connection/ConnectionPool; use @Bean + manual settings to configure it;
  *
  * - @Autowired,  @Autowired( required = false)
  *   @Qualifier( "exactClassName/BeanName")
  *
- * // for @Controller, @RestController
- * - @ExceptionHandler(RuntimeException.class)
- *     ResponseEntity<Exception> handleAllExceptions(RuntimeException ex) {
+ * - Exception handling:
+ *   - throw new ResponseStatusException( HttpStatus.NOT_FOUND, "Foo Not Found", exc);
+ *   - @ExceptionHandler(RuntimeException.class)     // for THIS_ONLY @Controller, @RestController
+ *     @ExceptionHandler( { RuntimeException.class, InputOutputException.class})
+ *     public void handleException() { ...   }
+ *     ResponseEntity<Exception> handleAllExceptions( RuntimeException ex) {
  *        return new ResponseEntity<Exception>( ex, HttpStatus.INTERNAL_SERVER_ERROR);
  *     }
+ *   - @ControllerAdvice                             // Global REST application exception handling
+ *     public class MyResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+ *      @ExceptionHandler(value = { IllegalArgumentException.class, IllegalStateException.class })
+ *      protected ResponseEntity<Object> handleConflict( RuntimeException ex, WebRequest request) {
+ *         String bodyOfResponse = "This should be application specific";
+ *         return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), HttpStatus.CONFLICT, request);
+ *     }
+ *      // to handle method-level security AccessDeniedException - result of annotations:
+ *      // @PreAuthorize, @PostAuthorize, and @Secure.
+ *     @ExceptionHandler({ AccessDeniedException.class }) //
+ *     protected ResponseEntity<Object> handleConflict(...) {..}
+ *     }
+ *
  * - @ResponseStatus( HttpStatus.NOT_FOUND)  // for @Controller, @RestController
  *   - Exception
  *   - mapping method
@@ -366,7 +385,43 @@ public class Spring {}
  * - How to create custom validators in spring: create appropriate annotation,
  *     class-validator impl ConstraineValidator
  *
- * - @Transaction propagation уровни в транзакциях
+ * - Spring main Exceptions:
+ *    NoSuchBeanDefinitionException
+ *    NonUniqueBeanDefinitionException  // @Bean @Primary <beanDef> - to fix it
+ *    BeanCreationException             // @Bean @Lazy <beanDef> - circular dependency
+ *    BeanInstantiationException        // if bean is abstract class or Exception in class constructor
+ *    ApplicationContextException       // there is no @SpringBootApplication
+ *
+ * - @NoRepositoryBean                  // for basic interfaces/abstractClasses
+ *
+ * - Spring Data JPA def implem-n - Hibernate
+ * - Interface Repository<T,ID>         // marker Repository interface;
+ *    Interface CrudRepository<T,ID> ext Repository<T,ID>                 // @NoRepositoryBean
+ *                                  .count()
+ *                                  .delete()/.deleteAll( Iterable)
+ *                                  .find()/.Iterable findAll()
+ *                                  .save()/saveAll( Iterable)
+ *      Interface ListCrudRepository<T,ID> ext CrudRepository<T,ID>       // @NoRepositoryBean
+ *                                  .List<T> findAll()
+ *                                  .saveAll( List<T>)
+ *        Interface PagingAndSortingRepository<T,ID> ext Repository<T,ID> // @NoRepositoryBean
+ *                                  .Page<T> findAll( Pageable pageable)
+ *                                  .Iterable<T> findAll( Sort sort)
+ *          Interface ListPagingAndSortingRepository<T,ID> ext PagingAndSortingRepository<T,ID>
+ *                                  .List<T> findAll( Sort sort)
+ *            Interface JpaRepository<T,ID> extends ListCrudRepository<T,ID>, ListPagingAndSortingRepository<T,ID>,...
+ *                                  .deleteAllInBatch()
+ *                                  .findAll( Example ex)
+ *                                  .flush()
+ *                                  .saveAndFlush()
+ *   Spring Data MongoDB - MongoRepository
+ *
+ * - @Bean - + @Conditional..( @ConditionalOnMissingBean/Class);
+ *           + manual/programmatic control in ..getBean() {..} method
+ *   @Component - unconditional
+ *
+ * - SpringBoot load application.yaml first then application.properties; application.properties OVERRIDE yaml
+ *
  * - SpringCloud?
  * */
 // ________________________________ Spring Security
@@ -396,4 +451,6 @@ public class Spring {}
  *   authorities permissions(roles)                   // Collection<? extends GrantedAuthority> getAuthorities();
  *
  * interface GrantedAuthority extends Serializable {  String getAuthority();}
+ *
+ * - Def scope of security context is ThreadLocal
  * */

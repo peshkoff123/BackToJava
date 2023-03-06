@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class LeetCodeTasks {
     public static void RunAllTasks() {
@@ -25,7 +26,10 @@ public class LeetCodeTasks {
         LeetCode_Task322();
         LeetCode_Task56();
         LeetCode_Task39();
-        LeetCode_Task79()        ;
+        LeetCode_Task39_2();
+        LeetCode_Task79();
+        LeetCode_Task347();
+        LeetCode_Task122();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -653,7 +657,6 @@ public class LeetCodeTasks {
     private static int[] candidates_K;
     private static int target;
     private static String res_Task39;
-
     public static void LeetCode_Task39() {
         candidates = new int[]{2, 3, 6, 7};   // sorted and distinct !!!
         target = 7;
@@ -666,17 +669,13 @@ public class LeetCodeTasks {
         candidates = new int[]{2};   // sorted and distinct !!!
         target = 1;
         System.out.println("combinationSum( " + Arrays.toString(candidates) + ", " + target + ") = " + combinationSum());
-
     }
-
     public static String combinationSum() {
         res_Task39 = "";
         candidates_K = new int[candidates.length];
         _combinationSum(candidates.length - 1);
-
         return "[ " + res_Task39 + "]";
     }
-
     public static void _combinationSum(int startIndex) {
         int sum = -1;
         do {
@@ -686,25 +685,45 @@ public class LeetCodeTasks {
             }
             candidates_K[startIndex]++;
         } while ((sum = calcSum()) < target);
-        if (sum > target)
-            return;
-
+        if (sum > target) return;
         res_Task39 += "[" + combinationSumStr() + "]";
     }
-
     private static int calcSum() {
         int res = 0;
         for (int i = 0; i < candidates.length; i++)
             res += candidates[i] * candidates_K[i];
         return res;
     }
-
     private static String combinationSumStr() {
         String res = "";
         for (int i = 0; i < candidates.length; i++)
             for (int j = 0; j < candidates_K[i]; j++)
                 res += candidates[i] + ",";
         return res;
+    }
+
+    public static void LeetCode_Task39_2() {
+        candidates = new int[]{2, 3, 6, 7};   // sorted and distinct !!!
+        target = 7;
+        System.out.println("combinationSum( " + Arrays.toString(candidates) + ", " + target + ") = " + combinationSum_2());
+        candidates = new int[]{2, 3, 5};   // sorted and distinct !!!
+        target = 8;
+        System.out.println("combinationSum( " + Arrays.toString(candidates) + ", " + target + ") = " + combinationSum_2());
+
+    }
+    public static String combinationSum_2() {
+        res_Task39 = "";
+        ArrayList<Integer> candidatesList = (ArrayList<Integer>)Arrays.stream( candidates).boxed().collect( Collectors.toList());
+        combinationSum_21( 0, "[", candidatesList);
+        return "[ " + res_Task39 + "]";     }
+    public static void combinationSum_21( int sum, String res, ArrayList<Integer> options) {
+        ArrayList<Integer> l = new ArrayList<>();
+        for( int i : options) {
+            if (sum + i  < target) l.add( i);
+            if (sum + i == target) res_Task39 += res+i+"],";
+        }
+        for( int next : l)
+           combinationSum_21( sum+next, res+next+",", l);
     }
 
     // https://www.youtube.com/watch?v=a2UIsxR-8uU
@@ -770,5 +789,71 @@ public class LeetCodeTasks {
           if( nextCharPos.x == x && nextCharPos.y == y)
               return true;
         return false;
+    }
+
+    //
+    public static void LeetCode_Task347() {
+        int[] nums = new int[]{ 1,1,1, 2,2, 5, 6, 7, 6,6,6};
+        int K = 4;
+        System.out.println("top_K_frequentElemens( " + Arrays.toString(nums) + ", " + K + ") = " + top_K_frequentElements( nums, K));
+
+        nums = new int[]{ 5,6,7, 1,2, 5, 6, 7, 6,6,6};
+        K = 5;
+        System.out.println("top_K_frequentElemens( " + Arrays.toString(nums) + ", " + K + ") = " + top_K_frequentElements( nums, K));
+
+        nums = new int[]{ 5};
+        K = 3;
+        System.out.println("top_K_frequentElemens( " + Arrays.toString(nums) + ", " + K + ") = " + top_K_frequentElements( nums, K));
+    }
+    @AllArgsConstructor
+    private static class myInt {
+        private int value;
+        public void inc() { value++; }
+        public int hashCode() { return value; }
+        public String toString() { return Integer.toString( value); }
+    }
+    static String top_K_frequentElements( int[] nums, int K) {
+        Map<Integer, myInt> m = new HashMap<>( nums.length);
+        for( int i : nums) {
+            myInt freq = m.get( i);
+            if( freq != null) freq.inc();
+            else m.put( i, new myInt(1));
+        }
+
+        Map<myInt, Integer> m1 = new HashMap<>( m.size());
+        m.forEach( ( Integer k, myInt v) -> m1.put( v, k));
+
+        String res = "";
+        Collection<Integer> vals = m1.values();
+        Object[] valsArr = vals.toArray();
+        for( int i=valsArr.length-1, k=0; i >= 0 && k < K; i--, k++)
+            res += valsArr[ i]+",";
+
+        return res;
+    }
+
+    // https://www.youtube.com/watch?v=ZTOJty8zpW0
+    public static void LeetCode_Task122() {
+        int[] prices = new int[]{ 7,1,5, 3, 6, 4};
+        System.out.println( "SellStockII( " + Arrays.toString( prices) + ") = " + SellStockII( prices));
+        prices = new int[]{ 1, 2, 3, 4, 5};
+        System.out.println( "SellStockII( " + Arrays.toString( prices) + ") = " + SellStockII( prices));
+        prices = new int[]{ 7, 5, 4, 4, 1};
+        System.out.println( "SellStockII( " + Arrays.toString( prices) + ") = " + SellStockII( prices));
+    }
+    public static int SellStockII( int[] prices) {
+        int buy = prices[ 0], sell = prices[ 0], sum = 0;
+        for( int i=1; i<prices.length; i++) {
+            if( prices[i] < sell) {
+                sum += sell-buy;
+                buy = prices[ i];
+                sell = prices[ i];
+            }
+            if( prices[i] > sell)
+                sell = prices[ i];
+        }
+        sum += sell-buy;
+
+        return sum;
     }
 }

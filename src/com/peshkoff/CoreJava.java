@@ -371,6 +371,7 @@ public class CoreJava {}
  *       DOM DocObjModel - load all Doc into treeStructure; editable; navigable
  * - String.length() - ret "number of Unicode code units"; some of chars consists of two "code units"
  *                     str.codePointCount( 0, str.length())
- *
+ * - String Palindrome - manually( StringBuilder.reverse() + compare); StringUtils - int 3d party(Apache)
+ * - class ThreadLocal: .T get(), .set( T t) has separate T for each thread
  * - ComplitableFuture
  */

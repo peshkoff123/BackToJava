@@ -115,6 +115,11 @@ public class Hibernate {}
  *
  *  @Id
  *  @GeneratedValue
+ *  @GeneratedValue( strategy=GenerationType.AUTO      // Hibernate generated ID ("hybernate_sequence" table)
+ *                                          .IDENTITY  // DB generate ID
+ *                                          .SEQUENCE
+ *                                          .TABLE
+ *                                          .class )
  *  @Generated(value=GenerationTime.INSERT(ALWAYS))
  *  @NaturalId            //add constraint UNIQUE( fieldName)
  *  @Column( name="NotJavaFieldName", length=100)
@@ -222,5 +227,9 @@ public class Hibernate {}
  * - OptimisticLock - read + verifyVersion(date,hash) before Update; Pessimistic - lock record
  * - N+1 problem + solutions( JOINs, SubSelects, Batch, JoinFetch)?
  * - @EntityGraph - LAZY->EAGER
- *
+ * - JPA::EntityManager - analogue of Hibernate::Session
+ * - Session.load( Class, id) - ret proxy, loadLazy, if noObjID - exception
+ *          .get( Class, id)  - hit DB immediately, if noObjID - ret null
+ * - Session.merge( Obj) - merge Obj with sameID_Obj in session and save to DB
+ *          .update( Obj) - if sameID_Obj is in session already - exception, otherwise - same as merge()
  * */
