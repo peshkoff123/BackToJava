@@ -356,6 +356,8 @@ public class Spring {}
  * - Spring Web/Rest/Http_Client : RestTemplate( based on Apache Http Client)  ( WebClient - newer)
  *    TestRestTemplate - wrapper for RestTemplate; differ: 4xx and 5xx do not result in an exception
  *    HttpEntity<T>; RequestEntity<T>, ResponseEntity<T> ext HttpEntity
+ * - FeignClient - web client like RestTemplate; sence to use - can work with SpringCloudLoadBalancer
+ *                 or Ribbon( Netflix) to have clienSide load balancing
  *
  * - ProxyObjects - wrapper for anyObject to add separated logic: transactions, security, logging,..
  *   JDK-proxy — dynamic proxy. based on separate interface. API встроены в JDK.
@@ -422,8 +424,11 @@ public class Spring {}
  *
  * - SpringBoot load application.yaml first then application.properties; application.properties OVERRIDE yaml
  *
- * - SpringCloud?
  * */
+// ________________________________ Spring Cloud
+/**  ClientSideLoadBalancer: SpringCloudLoadBalancer, Ribbon( Netflix, obsolete)
+*     FeignClient - web client can work with SpringCloudLoadBalancer or Ribbon( Netflix)
+**/
 // ________________________________ Spring Security
 //https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html
 /** @EnableWebSecurity
