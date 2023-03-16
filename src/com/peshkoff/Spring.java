@@ -276,6 +276,10 @@ public class Spring {}
  * */
 // ________________________________ Spring Q_And_A
 /**
+ * - spring-boot-devtools - addLib of Spring for development only - fast restart of application during coding;
+ *     reload app when classes in classPath are updated;
+ *     uses BaseClassLoader (for unchangeable jar's) + RestartClassLoader (for our classes);
+ *     restart application = reload RestartClassLoader+ourClasses
  * - ApplicationContext  types
  *    - FileSystemXmlApplicationContext
  *    - ClassPathXmlApplicationContext

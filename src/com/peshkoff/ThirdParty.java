@@ -43,6 +43,7 @@ package com.peshkoff;
  *       отличаться - получение данных или статистики
  *   POST/create - NO_idempotent: N identicalRequest = N new records
  *   PUT/update  - idempotent:  N identicalRequest = same result
+ *   GET, HEAD, PUT, DELETE - idempotent
  *
  * - HTTP retCodes
  *   - 100-199 - info
@@ -163,6 +164,7 @@ package com.peshkoff;
 // ________________________________ MicroServices
 //https://www.nginx.com/blog/introduction-to-microservices/
 /** MicroService - independently deployed service ( own JVM, project).
+ *                 это воплощение паттернов High Cohesion и Low Coupling
 *   Monolith - all services in same JVM, same project.
 *   Synchronous communication HTTP( REST)
 *   Asynchronous - messaging ( JMS, eMail)
@@ -201,20 +203,7 @@ package com.peshkoff;
  *  NonJava: NGINX Plus can manage authentication, access control, load balancing requests, caching responses,
  *           and provides application‑aware health checks and monitoring.
 **/
-/**  Handling partial failures
- *
- *  Partial failures dealing strategies:
- *   - network timeouts ( connectionTimeout, requestTimeout)
- *   - limited number of outstanding requests
- *   - fallback(запасной вариант):
- *      - return cachedData/defValue/emptyValue if realtimeResponce impossible
- *      - eventual consistency: put updateRequest into queue while dependency unavailable
- *   - circuitBreaker
- *
- *  Java Netflix Hystrix implements all this patterns;
- **/
-/**
- *  ServerSideLoadBalancer:  NGINX server-side discovery load balancer,
+/** ServerSideLoadBalancer:  NGINX server-side discovery load balancer,
  *       AWS ElasticLoadBalancer (ELB) - balances the traffic among ElasticComputeCloud (EC2) instances or
  *                                       ElasticContainerService (ECS) containers
  *  Benefits:  simple clientServices ( all work on 3dParty LoadBalancer)
@@ -280,6 +269,75 @@ package com.peshkoff;
  *     ServiceDiscovery   <-RegisterNewServices -
  *
  * **/
-
+/**  Handling partial failures
+ *
+ *  Partial failures dealing strategies:
+ *   - network timeouts ( connectionTimeout, requestTimeout)
+ *   - limited number of outstanding requests
+ *   - fallback(запасной вариант):
+ *      - return cachedData/defValue/emptyValue if realtimeResponce impossible
+ *      - eventual consistency: put updateRequest into queue while dependency unavailable
+ *   - circuitBreaker
+ *
+ *  Java Netflix Hystrix implements circuitBreaker and all this patterns;
+ *
+ *  StabilityPatterns:
+ *  - RetryPattern
+ *  - TimeOutPattern
+ *  - CircuitBreaker ( Closed, Open, HalfOpen); similar to Decorator
+ *  - HandShakingPattern - inform clientService to reduce requests number
+ *  - BulkHeadsPattern: - ResourcePerClient ( WebClient, MobClient);
+ *                      - ResourcePerApplication = ServicePerContainer/VM
+ *                      - ResourcePerEndPoint separateWebClient for eachOutsideResource
+ **/
+/** Distributed Data management:
+ *  - Polyglot persistence approach: Service <-> PrivateDB: encapsulated data, loosely coupled services,
+ *                                   better performance and scalability;
+ *    diff_DBTypes for services:
+ *    - Elasticsearch - text search engine( text data only)
+ *    - Neo4j - graph database to store social graph data
+ *
+ *  Distributed System Data problem:
+ *  - Put data into Distributed system
+ *    - CAP theorem: or availability/eventualConsistency:
+ *                      - EventDrivenArchitecture - Events are consequences of Model changes;
+ *                         Transaction -> transaction_1( ModelChange, Event)+..+transaction_N( ModelChange, Event):
+ *                         - Shared DB Table change   -> Event
+ *                         - DB TransactionLog change -> Event
+ *                       - EventSourceArchitecture - Events are Model
+ *                   or ACID-style consistency = Distributed Transactions = Two‑phase commit (2PC)
+ *
+ *  - Queries data from Distributed system
+ *      Solution: MaterializedView - some service aggregate data from multiple services
+ * **/
+/** Micorcervices Deployment Strategies
+ *  - Multiple Services per Host
+ *    Benefit: - effective using of resources ( DB, JVM, Tomcat)
+ *             - simple/fast deploy and start
+ *    Drawback: - no isolation between services
+ *              - no resource limitation
+ *              - deploy team must know each service deploy process
+ *  - Service per VM ( Amazon EC2 AMI)
+ *    Benefit: - isolation between services
+ *             - resource limitation
+ *             - easy/typical deployment
+ *             - AWS and others provide load balancing and autoscaling.
+ *    Drawback: - overhead: VM + operationSystem
+ *              - VM has static characteristics Memory-CPU-IO - could be underutilized
+ *              - hard/long to create new VM image
+ *              - long start of new image
+ *  - Service per Container - AWS EC2 Container Service (ECS);  might use a cluster manager: Kubernetes or Marathon to manage your containers
+ *    Benefit: - same as in VM
+ *             - there is no overhead: VM + operationSystem
+ *             - easy to create new image
+ *    Drawback: - less secure then VM as use same OS_kernel
+ *  - Serverless Deploy - AWS Lambda
+ *    Benefit: - easy deploy: ZIP + metadata
+ *             - easy to start - automatically runs enough instances for requests
+ *             - no work for infrastructure
+ *    Drawback: - request handling in 300 sec
+ *              - stateless services only as may be run many instances concurrently
+ *
+ * **/
 public class ThirdParty {
 }
