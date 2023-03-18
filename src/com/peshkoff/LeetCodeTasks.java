@@ -1,6 +1,8 @@
 package com.peshkoff;
 
+import com.sun.deploy.security.BadCertificateDialog;
 import lombok.AllArgsConstructor;
+import sun.awt.windows.WSystemTrayPeer;
 
 import java.io.IOException;
 import java.util.*;
@@ -49,7 +51,6 @@ public class LeetCodeTasks {
         l2.add(5);
         l2.add(6);
         l2.add(4);
-
         ListIterator it = l1.listIterator(l1.size());
         String s1 = "", s2 = "";
         while (it.hasPrevious()) s1 = s1 + it.previous();

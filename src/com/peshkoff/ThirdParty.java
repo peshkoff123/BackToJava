@@ -73,62 +73,6 @@ package com.peshkoff;
  *  JAX-RS to annotate Java classes to create RESTful web services
  *  http://localhost:8080/greeting?name=User  ->  {"id":1,"content":"Hello, User!"}
  * */
-// ________________________________ ApacheMaven
-/** Maven - framework, build tool, everything do plugins,
-*    - mvn install -DskipTests        // to skip running the tests( unit + integration) but still we want to compile them
- *   - mvn install -DskipITs          // to skip running the integration_tests only
- *   - mvn -Dmaven.test.skip package  // to skip the compilation phase; overrides property from POM
- *     <properties>                   // same in POM
- *         <tests.skip>true</tests.skip>
- *     </properties>
- *
-*  Artifact - anyLib(jar) in repository.
-*  Goal - special task, could be connected to a phase or not.
-*  Scope - compile, runTime, test,...
-*  Repository - local (~/.m2/repository/..), global https://repo.maven.apache.org/maven2/, remote
-*  ProjectObjectModel - pom.xml
-*  <project ...>
-*      <groupId>com.peshkoff</groupId>
-*      <artifactId>myProject</artifactId>
-*      <version>1.0-SNAPSHOT</version>
-*      <packaging>pom</packaging>
-*      <name>name</name>
-*    <modules>
-*        <module>InnerModule</module>
-*    <modules>
-*    <properties/>
-*      <dependencies>
-*         <dependency><groupId/><artifactId/><version/>
-*                     <scope>test</scope>
-*         </dependency>
-*      </dependencies>
-*      <plugins/>
-*      <goals/>
-*  </project>
-*  Archetype - MavenFolderStructure for some type of project
-*  project
-*     pom.xml
-*     src/main/java/*.java
-*             /resources/
-*             /webapp/
-*        /test/java/
-*             /resources/
-*     target/classes
-*           /*jar(*.war)
-*  LifeCycle - sequential phases
-*  validate - verify pom.xml
-*  compile - *.java -> *.class
-*  test - run unit tests
-*  package - *.classes -> jar/war
-*  verify - run integration test
-*  install - copy jar/war into local repository
-*  deploy - copy jar/war into remote Maven repository
-*
-*  clean - delete /target folder (all previously compiled classes, resources, packages)
-*
-*  site - generate docs and site
-**/
-
 // ________________________________ JMS specification
 /** PointToPoint messaging domain: OneToOne, warranted delivery - noTimingDependency sender/receiver
 *                |       |     -Msg->
@@ -339,5 +283,94 @@ package com.peshkoff;
  *              - stateless services only as may be run many instances concurrently
  *
  * **/
+// ________________________________ ApacheMaven
+/** Maven - framework, build tool, everything do plugins,
+ *    - mvn install -DskipTests        // to skip running the tests( unit + integration) but still we want to compile them
+ *   - mvn install -DskipITs          // to skip running the integration_tests only
+ *   - mvn -Dmaven.test.skip package  // to skip the compilation phase; overrides property from POM
+ *     <properties>                   // same in POM
+ *         <tests.skip>true</tests.skip>
+ *     </properties>
+ *
+ *  Artifact - anyLib(jar) in repository.
+ *  Goal - special task, could be connected to a phase or not.
+ *  Scope - compile, runTime, test,...
+ *  Repository - local (~/.m2/repository/..), global https://repo.maven.apache.org/maven2/, remote
+ *  ProjectObjectModel - pom.xml
+ *  <project ...>
+ *      <groupId>com.peshkoff</groupId>
+ *      <artifactId>myProject</artifactId>
+ *      <version>1.0-SNAPSHOT</version>
+ *      <packaging>pom</packaging>
+ *      <name>name</name>
+ *    <modules>
+ *        <module>InnerModule</module>
+ *    <modules>
+ *    <properties/>
+ *      <dependencies>
+ *         <dependency><groupId/><artifactId/><version/>
+ *                     <scope>test</scope>
+ *         </dependency>
+ *      </dependencies>
+ *      <plugins/>
+ *      <goals/>
+ *  </project>
+ *  Archetype - MavenFolderStructure for some type of project
+ *  project
+ *     pom.xml
+ *     src/main/java/*.java
+ *             /resources/
+ *             /webapp/
+ *        /test/java/
+ *             /resources/
+ *     target/classes
+ *           /*jar(*.war)
+ *  LifeCycle - sequential phases
+ *  validate - verify pom.xml
+ *  compile - *.java -> *.class
+ *  test - run unit tests
+ *  package - *.classes -> jar/war
+ *  verify - run integration test
+ *  install - copy jar/war into local repository
+ *  deploy - copy jar/war into remote Maven repository
+ *
+ *  clean - delete /target folder (all previously compiled classes, resources, packages)
+ *
+ *  site - generate docs and site
+ **/
+// ________________________________ Git
+/** Git - for maintaining fileSystemSnapshots at specific time moments
+ * Main notions
+ * SHA-1 HASH - unique key/REF for BLOB, TREE, COMMIT; depends of content/body
+ * REF - HASH
+ * BLOB - body of file container (not metedata/fileAttributes)
+ * TREE - directory/folder; contains REFs on subTREEs + BLOBs in that COMMIT or parent
+ * COMMIT - snapshot of WORKING DIRECTORY + PARENT_COMMIT_REF+ Message+Date+Author
+ * BRANCH - sequence of COMMITs/snapshots/changes dependent to each other;
+ *        - named REF to last COMMIT
+ *        - MASTER/MAIN; TRUNC
+ *        - HEAD - special REF/pointer on current/working branch
+ * WORKING DIRECTORY/TREE - project dir + .git folder
+ * INDEX/STAGING AREA - register changes here and then push to COMMIT; to verify/confirm changes before commit them
+ * REPOSITORY - collection of COMMITs, BRANCHES, other Git stuff
+ *
+ *  Main commands Git
+ *  - init - create REPOSITORY, MASTER/MAIN branch, .git folder
+ *      git init my_repo
+ *  - add <file.name> - add file to INDEX/STAGING
+ *      git add a.txt
+ *  - commit - save snapshot into HEAD
+ *      git commit -m "My first commit"
+ *  - branch - create another branch
+ *      git branch test
+ *  - checkout - switch to specific branch = re-point HEAD
+ *     git checkout test  :  git branch test + git checkout test
+ *  - log
+ * PULL
+ * PUSH
+ * ADD
+ * CHERRY-PIC
+ * SHELVE
+**/
 public class ThirdParty {
 }
