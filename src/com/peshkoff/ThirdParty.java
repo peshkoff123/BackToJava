@@ -353,7 +353,11 @@ package com.peshkoff;
  * WORKING DIRECTORY/TREE - project dir + .git folder
  * INDEX/STAGING AREA - register changes here and then push to COMMIT; to verify/confirm changes before commit them
  * REPOSITORY - collection of COMMITs, BRANCHES, other Git stuff
- * TAG ?
+ * TAG - special name for commit
+ * PATCH - enhanced diff; asymmetric
+ *
+ *  HEAD -> MAIN -> COMMIT_i
+ *  HEAD -> BRANCH_k -> COMMIT_j
  *
  *  Main commands Git
  *  - init - create REPOSITORY, MASTER/MAIN branch, .git folder
@@ -362,17 +366,50 @@ package com.peshkoff;
  *      git add a.txt
  *  - commit - save snapshot into HEAD
  *      git commit -m "My first commit"
- *  - branch - create another branch
- *      git branch test
- *  - checkout - switch to specific branch = re-point HEAD
- *     git checkout test  :  git branch test + git checkout test
+ *
+ *  - reset <commit.REF> - switch to one of previous COMMITs = re-point HEAD!
+ *                         to replace last mistakable commit; should NOT be used after PUSH COMMIT !
+ *      --soft    HEAD -> MAIN -> <commit.REF>
+ *      --mixed  def behaviour(git reset=git reset--mixed); soft + STAGING := <commit.REF>
+ *      --hard   soft + workDir := STAGING !
+ *      git reset --soft commit.REF
+ *  - revert - reverse changes of last COMMIT by NEW_COMMIT
+ *      git revert HEAD
+ *  - merge - merges two branches, result - new commit
+ *                         - com_N+1 - .. - com_M                 <- branch
+ *          com_1 - com_N  - com_N+1 - com_merge := com_M         <- HEAD
+ *     git checkout <brach_1>  // <- HEAD
+ *     git merge <brach_1>
+ *  - rebase - move baseCommit of branch to another commit of MASTER branch
+ *                         - -moveBase-> - com_N+1 - .. - com_M                 <- branch
+ *                  from com_N to com_N+1
+ *          com_1 - com_N  - com_N+1           <- HEAD
+ *     git checkout <brach_1>  // <- HEAD
+ *     git rebase <brach_1(MASTER)>
+ *  - cherry-pick <some.commit> - commit changes from <some.commit> into HEAD
+ *                         - com_N+1 - .. - com_M                 <- branch
+ *          com_1 - com_N  - com_N+1 - com_cherry-pick := com_N+2 <- HEAD
+ *     git checkout <some.brach(MASTER)>
+ *     git cherry-pick <some.commit>
+ *
  *  - log
- * PULL
- * PUSH
- * ADD
- * CHERRY-PIC
- * SHELVE
- * STASH
+ *  - status - current state ( branch, STAGING, untrackedFiles)
+ *      git status
+ *  - diff <commit_1> <commit_2>
+ *      git diff HEAD~1 HEAD; git diff HEAD~2 HEAD~1
+ *  - show <some.commit>
+ *  - reflog - show gits log
+ *
+ *  - push - to remote REPOSITORY
+ *  - pull - from remote REPOSITORY
+ *
+ *  - stash CTRL_X - place uncommited changes on shelve
+ *     git stash                       // CTRL_X
+ *     git stash save "stash comment"
+ *     git stash list                  // see all stack of stashes
+ *     git stash apply <number( 0,1)>  // CTRL_V; def number = last
+ *     git stash pop                   // CTRL_V + remove that stash
+ *  - Itellij/Shelve - direct analogue os git stash
 **/
 public class ThirdParty {
 }
