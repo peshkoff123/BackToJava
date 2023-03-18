@@ -353,6 +353,7 @@ package com.peshkoff;
  * WORKING DIRECTORY/TREE - project dir + .git folder
  * INDEX/STAGING AREA - register changes here and then push to COMMIT; to verify/confirm changes before commit them
  * REPOSITORY - collection of COMMITs, BRANCHES, other Git stuff
+ * TAG ?
  *
  *  Main commands Git
  *  - init - create REPOSITORY, MASTER/MAIN branch, .git folder
@@ -371,6 +372,7 @@ package com.peshkoff;
  * ADD
  * CHERRY-PIC
  * SHELVE
+ * STASH
 **/
 public class ThirdParty {
 }
