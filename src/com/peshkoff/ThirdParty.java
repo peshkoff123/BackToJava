@@ -367,11 +367,12 @@ package com.peshkoff;
  *  - commit - save snapshot into HEAD
  *      git commit -m "My first commit"
  *
- *  - reset <commit.REF> - switch to one of previous COMMITs = re-point HEAD!
+ *  - checkout - re-point HEAD
+ *  - reset <commit.REF> - switch to one of previous COMMITs = re-point commit.REF!
  *                         to replace last mistakable commit; should NOT be used after PUSH COMMIT !
- *      --soft    HEAD -> MAIN -> <commit.REF>
- *      --mixed  def behaviour(git reset=git reset--mixed); soft + STAGING := <commit.REF>
- *      --hard   soft + workDir := STAGING !
+ *      --soft   discard-LastCommit;
+ *      --mixed  discard-LastCommit+AddIndex; def behaviour ( git reset=git reset --mixed);
+ *      --hard   discard-LastCommit+AddIndex+LocalFileChanges;
  *      git reset --soft commit.REF
  *  - revert - reverse changes of last COMMIT by NEW_COMMIT
  *      git revert HEAD
