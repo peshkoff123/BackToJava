@@ -412,5 +412,323 @@ package com.peshkoff;
  *     git stash pop                   // CTRL_V + remove that stash
  *  - Itellij/Shelve - direct analogue os git stash
 **/
-public class ThirdParty {
+// ________________________________ Docker
+/** Docker - tool to deploy and run app using container. DockerClient(CLI) <- REST_API -> DockerServer
+ *
+ *  Virtualization: OS :: Hypervisor :: GuestOS_1 :: App_1           // overhead - GuestOS
+ *                                   :: GuestOS_N :: App_N
+ *
+ *  Containerization: OS :: ContainerEngine :: Container_1 :: App_1  // light weight containers
+ *                                          :: Container_1 :: App_1
+ *
+ *  + lightwaight, dynamicalMemoryConsumption
+ *  - less isolation
+ *  Container - process in HostOS ( dynamicalMemoryConsumption)
+ *            - package contains app + libs + dependencies + envSettings.
+ *   FilesInContainer
+ *    - WritableContainerLayer( def) though "storageDriver" ( slow, notAccessible outside)
+ *    - Volumes - part of HostFileSystem created/managed by Docker (/var/lib/docker/volumes/ on Linux);
+ *                can be mounted into multiple containers simultaneously; Volume drivers allow you to store your data
+ *                on remote hosts or cloud providers. Allows Linux fileSyst behavior on Win PC.
+ *    - BindMounts - shared part of HostFileSystem ( anywhere); very performant, but they rely on the
+ *               host machine’s filesystem
+ *    - inMemory files: - tmpfs for Linux, - namedPipe for Win
+ *
+ *  Dockerfile - txtFile - commands to create DockerImage
+ *    Dockerfile -> DockerImage -> DockerHub
+ *                              -> DockerContainer
+ *   Dockerfile:
+ *    FROM openjdk:8
+ *    WORKDIR /app
+ *    ADD
+ *    COPY
+ *    RUN
+ *    EXPOSE 8080
+ *    ENTRYPOINT ["java","-jar","myjar.jar"]
+ *
+ *
+ *  docker build -t dock-test-jar .    // Dockerfile in this folder
+ *  docker build -t dock-test-jar:1.0 .
+ *  mvn spring-boot:build-image        // NO Dockerfile needed - looks better
+ *    //https://www.youtube.com/watch?v=1w1Jv9qssqg - Spring Boot 2.3, a new feature was added that enables you
+ *    to create Docker Images from your application using Cloud Native Buildpacks
+ *
+ *  docker run -d -p 8080:8080 --name mycont1 docker-rest-test:0.0.1-SNAPSHOT
+ *                                       //curl 192.168.99.100:8080/
+ *
+ *  docker ps                            // runned container list
+ *  docker ps -a                         // runned and stopped container list
+ *  docker logs contName
+ *  docker inspect contName              // get the internal container ip
+ *  docker exec -it contName bash        // exec command in runned container
+ *
+ *  docker images
+ *  docker image ls
+ *  docker stop contName
+ *  docker rm -f <container>
+ *  docker rmi -f <image>
+ *
+ *  docker pull ubuntu/chiselled-jre:8-22.04_edge
+ *
+ *  docker volume create myVolume                 // Volume
+ *  docker volume list
+ *  docker volume inspect myVolume
+ *  docker volume rm myVolume
+ *  docker run --name imageName -p 3306:3306 -d   // Run with Volume
+ *             -e MYSQL_ROOT_PASSWORD=my-secret-pw
+ *             --mount source=myVolume,target=/var/lib/mysql
+ *         mysql
+ *
+ *  docker run --name imageName -p 3306:3306 -d   // Run with BindMount
+ *             -e MYSQL_ROOT_PASSWORD=my-secret-pw
+ *             --mount type=bind,source="$(pwd)"/mysql_bind_folder,target=/var/lib/mysql
+ *         mysql
+ *  // Win specifically:
+ *  docker run --name db
+ *    -e MYSQL_ROOT_PASSWORD=somewordpress -e MYSQL_PASSWORD=wordpress -e MYSQL_DATABASE=wordpress -e MYSQL_USER=wordpress
+ *    --mount type=bind,source=%cd%/mariadb_data,target=/var/lib/mysql
+ *    -d
+ *    mariadb:10.6.4-focal
+ *    --default-authentication-plugin=mysql_native_password
+ *
+ *  // Difference between -v and --mount is that :
+ *    -v can create a directory if it didn't exist,
+ *       -v "$(pwd)"/mariadb_data:/var/lib/mysql
+ *    --mount gives an error if the directory doesn't exist
+ *       --mount type=bind,source="$(pwd)"mariadb_data,target=/var/lib/mysql
+ *
+ *
+ *  DockerCompose - tool to create/manage/cleanUp multiContainer/multiVolumes/networking apps
+ *  DockerComposeFile: compose.yaml(yml) or docker-compose.yaml(yml)
+ *  docker compose up - compose.yml -> DockerDemon -run/update-> containers/networking/volumes of App
+ *  docker compose up -d   // start containers from compose.yml
+ *  docker compose down    // stop containers from compose.yml
+ *
+ *             compose.yml
+ *  _____________________________________
+ *  services:
+ *   db:
+ *     image: mariadb:10.6.4-focal
+ *     command: '--default-authentication-plugin=mysql_native_password'
+ *     volumes:
+ *       - mariadb_data:/var/lib/mysql
+ *     restart: always
+ *     environment:
+ *       - MYSQL_ROOT_PASSWORD=somewordpress
+ *       - MYSQL_DATABASE=wordpress
+ *       - MYSQL_USER=wordpress
+ *       - MYSQL_PASSWORD=wordpress
+ *     expose:
+ *       - 3306
+ *       - 33060
+ *   wordpress:
+ *     image: wordpress:latest
+ *     volumes:
+ *       - wordpress_data:/var/www/html
+ *     ports:
+ *       - 8081:80
+ *     restart: always
+ *     environment:
+ *       - WORDPRESS_DB_HOST=db
+ *       - WORDPRESS_DB_USER=wordpress
+ *       - WORDPRESS_DB_PASSWORD=wordpress
+ *       - WORDPRESS_DB_NAME=wordpress
+ * volumes:
+ *   mariadb_data:
+ *   wordpress_data:
+ *  _____________________________________
+ */
+// ________________________________ Kubernetes
+/** Kubernetes - platform to automatically control containers in distributed system.
+ *   + effective using of hardwareResources ( Up/DownContainers)
+ *   + no many admins needed
+ *
+ *  Deployment.yml - infrastructure description
+ *   + infrastructure versions
+ *
+ */
+// ________________________________ AWS
+/**
+ *   Public_Internet Zone <----> AWS_Public Zone <-- InternetGateWay --> AWS_Private Zone
+ *                        <------------------------- ( IGW)          --> VPCloud
+ *                                  S3                                   EC2
+ *
+ *   Internet <- InternetGateWay -> |                    VPC
+ *                                  |    PublicSubnet              PrivateSubnet
+ *                                  |    ELB, NAT        <--->        EC2, DB
+ *
+ *   HybridConnectivity:    VPC  <- VPN, DirectConnect -> CompanyOnPremise_DataCenter, RemoteWorkers
+ *   VPC <-- VPC_Peering( traffic in AWS, 1x1 ONLY!) --> VPC
+ *   multiple_VPCs  <--> TransitGateway <- VPN, DirectConnect -> CompanyOnPremise_DataCenter, RemoteWorkers
+ *
+ *   S3, DynamoDB  <-- | VPC_Endpoint/Gateway( traffic in AWS),| --> EC2
+ *   SNS,SQS,SES   <-- | ElasticNetworkInterface               |
+ *   CloudWatch    <-- |                                       |
+ *     // S3, DynamoDB, SNS,SQS,SES, CloudWatch  and EC2 - in same region !
+ *
+ *   VPC_Endpoint/Gateway  <-- PrivateLinc( traffic in AWS) --> 3-d party SaaS
+ *
+ *  SaaS - Soft As A Service
+ *  PaaS - platform As A Service ( installed OS + Application)
+ *  IaaS - Infrastructure As A Service ( hardware servers + network)
+ *
+ * Global Services:
+ *   Route53( DNS server),
+ *   IAM - Identity Access Management
+ *      ARN - Amazon Resource Name
+ *   Billing
+ *   ElasticBeanstalk - WEB Application ( Tomcat, Java, Docker,..); create EC2 instance; autoConfigure by script file
+ * Region Services:
+ *   SES - SimpleEmailService
+ *   SQS - SimpleQueueService: no guarantees FIFO;     PullNotification; 256KB - limit;
+ *           RetentionPeriod: [1 min..14days],4days-def
+ *           VisibilityTimeOut:[30sek..12Hours],30sek-def; implicit call DeleteMessage
+ *         FIFO SQS - guarantees FIFO( more expensive)
+ *   SNS - SimpleNotificationService: Pub/Sub, Topics, PushNotifications; Sub-rs: HTTP,SMS,eMail,Lambda,SQS,..
+ *
+ *   CloudFront - CDN - Content Delivery Network; Cache for statical data; Public entryPoint to S3?
+ *   CloudWatch - monitoring of our services/infrastructure
+ *   CloudFormation - language to describe/manage AWS resources; infrastructure in code; analog Terraform
+ *
+ *   RDS - RelationalDB Service ( endPoint to) Oracle, MsSQL, MySQL(noReplication), PostgeSQL(noReplication), Avrora - AmazonPostgres+Replication
+ *   DynamoDB - NoSQL DB
+ *
+ *   VPC - VirtualPrivateCloud
+ *   IGW - InternetGateway for PublicSubnets;
+ *         from PublicSubnets access to Internet - allowed, from Internet to PrivateSubnet - allowed too
+ *   NAT - NetworkAddressTranslation gateway for PrivateSubnets;
+ *         from PrivateSubnet access to Internet - allowed, from Internet to PrivateSubnet - disallowed
+ *   VGW - VirtualGateway entry point for VPN
+ *   Network ACL - Network AccessControlList
+ *   CIDR - ClasslessInterDomainRouting ( 10.10.0.0/16 - 10.10-fixed for subnet)
+ *
+ *   ECR - Elastic Container Registry: analog for Docker Hub
+ * AvailabilityZoneServices:
+ *   EC2 - Elastic Compute Cloud
+ *     AMI - Amazon Machine Image: AmazonLinux, RedHat, Win,.., userImage
+ *     SecurityGroup - like AmazonFireWall
+ *   RDS
+ *   ELB - ElasticLoadBalancer
+ *   ALB - Application LoadBalancer
+ *
+ *
+ *
+ *  Geographic Areas: America, Canada, Africa, India, Europe
+ *  Regions in Europe: Frankfurt, Ireland, London, Milan, Paris, Stockholm
+ *  Region contains at least 2 AvailabilityZones( DataCenters) backing up each other
+ *
+ *  AWS_Account - container for
+ *     RootUser(eMail, cardInfo) has FULL control of Users, Resources
+ *   - IdentityAccessManagement( IAM): Users( programmaticAccess, AWS_Console_Access), userGroups,
+ *                                     Policies/Permissions,
+ *                                     Roles: Permissions for entities/instances/servers
+ *      - all permissions (full or limited) must be granted directly
+ *      - external Identities can be granted access to that Account as well
+ *   - Resources: S3_Buckets, EC2, ..
+ *
+ *  VPCloud - autocreated for account, 1 region, access to all AvailabilityZones in that Region
+ *  VPC components: SubNet, RouteTable, FireWall( SecurityGroup + Network AccessControlList)
+ *     NetworkAddressTranslation( NAT)
+ *
+ * AWS Storage
+ *   EBS - Elastic Block Storage ( Volume) - lowLatency nonShared storage for EC2, RDS; AvailabilityZone
+ *   S3 - Simple Storage Service ( Bucket) - unlimSpace; standalone accessible from Internet by HTTP/HTTPS; Global/Region
+ *   EFS - Elastic File System ( FileSystem) - shared for EC2; Region
+ *   FSx - EFS for Win ( File System) - shared for EC2; SMB(Samba)Protocol; Region
+ *
+ * AWS S3
+ *     - Standard - data in two dataCenters
+ *     - Infrequently Access - data in two dataCenters
+ *     - Reduced Redundancy - data in one dataCenter
+ *     - AmazonGlacier - archive/fileStorage with big latency (3-5 hours)
+ *
+ * AWS ELB - Elastic Load Balancer
+ *  - ALB - Application Load Balancer: HTTP,HTTPS <--> Lambda, EC2, ECS; NO VPC
+ *  - NLB - Network Load Balancer:     TCP, UDP   <--> elastic=static_IP, EC2; ultra-high performance, TLS offloading, centralized certificate deployment
+ *  - GWLB - Gateway Load Balancer: ?
+ *  - CLB - Classic Load Balancer: for EC2 network
+ *  LoadBalancer:
+ *  Listener get request ( Protocol:Port) and redirect to TargetGroup( EC2,ECS,IP,Lambda) accordingly to RoutingRules
+ *    HTTPS_Listener - can offload TLS encryption/decryption( HTTPS -> HTTP)
+ *
+ *
+ * AWS EC2 - ElasticComputeCloud
+ *    - HHS_Client( analog Putty) - MobaXterm
+ *    - LinuxCommands:
+ *        echo "File content" > /var/www/html/index.html
+ *      ls;  ls -l
+ *        sudo -i                         // goto root dir
+ *        java -version
+ *        yum install java-1.8.0-openjdk
+ *        alternatives --config java
+ *        wget https://res_name           // get file from S3
+ *        wget https://s3.eu-north-1.amazonaws.com/first.java.bucket/dock-test.jar
+ *        java -jar jar_name.jar
+ *      sudo -y yum install httpd         // answer: -y
+ *      sudo service httpd start
+ *      chkconfig httpd on                // autostart httpd
+ *        cd /var/www/html                // index.html
+ *        sudo vi index.html
+ *        wq!
+ *
+ * AWS ECS - Elastic Container Service ( EC2 + Docker):
+ *           orchestration service to -deploy, -manage, -scale containerized app;
+ *           allows to focus on app not environment;
+ *           send your container instance log information to CloudWatch Logs ?
+ *  Cluster - logical and regional group of Tasks or ECS Instances; intention - isolate our app; payment for EC2
+ *  Instance - EC2 + DockerServer
+ *  Task Definition - JSON doc, describes containers (up to 10 containers); analogue of DockerCompose
+ *                    DockerContainer/Image  + DRAM + CPU + Ports
+ *  Task - instantiation of TaskDefinition; DockerContainer ( runned)
+ *  Service - Tasks manager: maintain desired Tasks number, reload terminated/failed Tasks, terminate redundant Tasks; AutoScalingGroup for containers;
+ *            creates Tasks on basis: TaskDefinition + serviceDescription
+ *  Launch types:
+ *  - EC2 LaunchType: EC2 + Docker in Cluster
+ *  - Fargate LaunchType: serverless: WITHOUT EC2 and infrastructure
+ *                 - payment for runningContainers;
+ *                 - NetworkMode for each Container: "AWSVPC"( new NetworkInterface/ip)
+ *   TaskDefinition +     |  -> {Task + ElasticNetworkInterface(ip)}_1; ..
+ *   Sevice (optionally)  |  -> {Task + ElasticNetworkInterface(ip)}_N
+ *
+ * AWS ECR - Elastic Container Registry: DockerImages storage; analog for Docker Hub
+ *           use aws_cli to login to AWS + docker push imageName:version
+ * AWS EKS - Elastic Container Service for Kubernetes
+ *
+ *
+ * AWS Lambda - serverless event-driven compute service;
+ *              zero administration, managing, servers for user;
+ *              automatic administration, scaling, logging
+ *              charging based on request number and time duration of code exec-n( no code running - no charge)
+ *
+ * DeploymentPackage - Function( Code) - zip/jar or OCI_containerImage ( OpenContainerInitiative)
+ * Function URL - dedicated HTTP/S endpoint to my Lambda
+ *     Function local storage: "/tmp" directory
+ *     Function logs -> CloudWatch Logs; "AWSLambdaBasicExecutionRole" need for that
+ * SynchronousInvocation - Trigger( AWS_Service)   -Event( JSON)->   Function( ourCode)
+ * AsynchronousInvocation - Trigger( AWS_Service)   -Event( JSON)->  EventQueue  -Event( JSON)->  Function( ourCode)
+ * ExecutionEnvironment - isolated runtime env + lifecycle for Function + ExternalExtension
+ *             ExecutionEnvironment
+ *     Processes          API Endpoints
+ *      Function     <---> RuntimeAPI                  <--->  Lambda
+ *      ExtExtension <---> ExtensionAPI, TelemetryAPI  <--->  Service
+ *  ExecutionEnvironmentLifecycle
+ *
+ * Layer - additional zip's with lib/dependency/data; yp to 5 per Function;
+ *         content -> "/opt" dir in the execution environment
+ *         N/A for containers
+ * Extension - 3-d_party soft/tools;
+ *             - AWS_provided, - own_Lambda_extensions
+ *             - internals: in same lifecycle; - externals: separate processes
+ * Concurrency - concurrent request - concurrent LambdaInstances; sequent request - same LambdaInstance
+ * Qualifier - version/alias "my-func:1" or "my-func:PROD"
+ * Destination - AWS resource for messages from Lambda ( errors or success)
+ *
+ * AWS API Gateway ?
+ * AWS CloudFormation ?
+ * AWS KMS - Key Management Service
+ *
+ * AWS CloudWatch Logs ?
+ *
+ * **/
+ public class ThirdParty {
 }

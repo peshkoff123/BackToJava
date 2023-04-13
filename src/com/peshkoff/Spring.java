@@ -286,6 +286,13 @@ public class Spring {}
  *    - AnnotationConfigApplicationContext
  *    - XmlWebApplicationContext
  *    - AnnotationConfigWebApplicationContext
+ * - Как получить ApplicationContext?
+ *    - ApplicationContext cont = SprigApplication.run( MyClass.class, args)
+ *    - @Autowired ApplicationContext cont;
+ *    - @Component class MyBean implements ApplicationContextAware {
+ *         public void setApplicationContext( ApplicationContext applicationContext) {
+ *           this.applicationContext=applicationContext;                            }
+ *      }
  * - Как получить ApplicationContext в интеграционном тесте?
  *   @ExtendWith(TestClass.class) — используется для указания тестового класса
  *   @ContextConfoguration(classes = JavaConfig.class) — загружает java/xml конфигурацию для создания контекста в тесте
@@ -330,6 +337,9 @@ public class Spring {}
  *
  * - @Autowired,  @Autowired( required = false)
  *   @Qualifier( "exactClassName/BeanName")
+ *
+ * - @Primary:  - @Bean @Primary; - @Component @Primary
+ *   No @Primary - NoUniqueBeanDefinitionException - several sameClass @Beans declared
  *
  * - Exception handling:
  *   - throw new ResponseStatusException( HttpStatus.NOT_FOUND, "Foo Not Found", exc);
