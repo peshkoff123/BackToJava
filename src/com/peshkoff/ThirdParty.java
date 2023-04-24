@@ -52,6 +52,35 @@ package com.peshkoff;
  *   - 400-499 - client error: 400 badRequest; 403 forbidden; 404 NotFound
  *   - 500-599 - server error
  *
+ * - HTTP/2.0:
+ *  - Binary -
+ *  - Frames - HTTP_message = [1..n] Frames;
+ *     Header{ Length, Type, Flags, StreamID} PayLoad{..}
+ *      Type: Data, Headers, Priority, Rst_Stream, Settings, PushPromise, Ping, GoAway, Window_Update, Continuation
+ *  - Stream - set of Frames with same FrameID; Connection = [1..n] Streams;
+ *  - ServerPush - push data to client cache; 1 request - many response
+ *  - Switch to HTTP 2.0:
+ *      UpgradeRequest: HTTP/1.1_Request              Headers "Connection:Upgrade", "Upgrade:HTTP/2.0"
+ *                      HTTP/1.1_Response retCode=101 Headers "Connection:Upgrade", "Upgrade:HTTP/2.0"
+ * - HTTP/3.0 changes: UDP instead TCP
+ *
+ * - gRPC - binary protocol for microServices faster that JSON/REST; uses ProtoBuf; based on HTTP/2;
+ *          supported by many languages; not supported by browsers yet
+ *
+ * - ProtocolBuffers - binary encoding data format for serialization; rival for JSON;
+ *                     language to describe data format; uses encoded/binary data
+ *    - protofile - data schema description doc
+ *       publisher.proto
+ *         service Publisher { rpc SignBook (SignRequest) ret (SignResponse) }
+ *         message SignRequest { string name=1;}
+ *         message SignResponse { string signature=1;}
+ *
+ * - SSO - Single Sign-On - authentication schema to access multiple trusted but independent app using single ID
+ *   - SAML - SecurityAssertionMarkupLanguage XML protocol;
+ *            SAML_Assertion: encrypted XML{ UserDetails, Athorities} - analog JWT
+ *            Identity providers: Okta, Auth0, oneLogin
+ *   - OpenID connect - Google JWT protocol
+ *
  * - JWT - JSON WebToken
  *    header:  { "typ":"JWT", "alg":"HS256"}
  *    payload: { "id","userName","role","inspire",..}
@@ -505,7 +534,6 @@ package com.peshkoff;
  *  docker compose down    // stop containers from compose.yml
  *
  *             compose.yml
- *  _____________________________________
  *  services:
  *   db:
  *     image: mariadb:10.6.4-focal
@@ -536,16 +564,65 @@ package com.peshkoff;
  * volumes:
  *   mariadb_data:
  *   wordpress_data:
- *  _____________________________________
  */
 // ________________________________ Kubernetes
-/** Kubernetes - platform to automatically control containers in distributed system.
- *   + effective using of hardwareResources ( Up/DownContainers)
- *   + no many admins needed
+/** Kubernetes - opensource platform to automatically deploy, manage, scale containers in high-loaded distributed system.;
+ *               facilitate declarative config and automation;
+ *               Kubernetes originates from Greek, meaning helmsman(рулевой) or pilot
+ *   + effective using of hardwareResources and infrastructure ( Up/DownContainers ~ load)
+ *   + less human resources - less admins needed due to automation
+ *  K8s provides:
+ *  - ServiceDiscovery_LoadBalancer using DNS names or IPs
+ *  - StorageOrchestration - automatically mount storages: local, cloud, ..
+ *  - Automated Rollout and Rollback - actualState -> desiredState at controlledRate
+ *  - Automated Bin packing - spec CPU, RAM fo containers
+ *  - SelfHealing - restart, stop containers, healthCheck
+ *  - Secret and ConfigManagement - store, manage sensitive info: passwords, OAuthTokens, SSH keys
  *
- *  Deployment.yml - infrastructure description
- *   + infrastructure versions
  *
+ *  Deployment.yml - infrastructure description; IaaC - Infrastructure as a Code
+ *   + infrastructure versions and change tracking
+ *   + fast and reliable deploy
+ *
+ *  Kubernetes Cluster Components:
+ *  - kubelet - agent runs on each Node; manages( runs, healthChecks) Containers described in PodSpecs
+ *  - KUBE-PROXY - network proxy runs on each Node, load balancing, routing - traffic forward between Pods and outside
+ *  - ContainerRuntime
+ *
+ *
+ *  Kubernetes Cluster Components:
+ *  - Cluster: set of worker machines/Nodes
+ *  - Node/Worker - VM/HardwareServer + Docker + [KUBELET(agent) + KUBE-PROXY]; hosts Pods
+ *  - ControlPlane - control all the K-sCluster; orchestration layer to manage WorkerNodes and Pods;
+ *                   ControlPlaneComponents - scheduling, starting new Pods, ..
+ *    ControlPlaneComponents started on separate machine:
+ *    - kube-apiServer - API to change Cluster state (HTTP + JSON/PROTOBUF); horizontally scalable
+ *    - ETCD - key-value DB persists state of system;
+ *    - kube-SCHEDULER - select Node, start Pods;
+ *    - kube-CONTROLLER-MANAGER - track K-sCluster state, runs Controllers:
+ *             nodeController, jobController( Pods, Tasks), endPointSliceController(Service <-Link-> Pods),
+ *             serviceAccountController( create serviceAccount for new NameSpaces), ..
+ *             Controller - makes change curState -> desiredState according apiServer info
+ *    - cloudController-Manager - cloud specific logic of Cluster: link Cluster to cloudAPI, ..
+ *    ETCD, SCHEDULER, CONTROLLER-MANAGER   <-  GRPC/PROTOBUF  ->  API_Serever
+ *
+ * Objects ( need to detach of infrastructure):
+ *  - Pod - group 1..n logically tied Containers - usually 1, if many - Containers on same server?;
+ *          has privateIP; min controllable entity
+ *    REPLICASET - POD + Container(POD)Number(autoscale system)
+ *    DEPLOYMENT - REPLICASET = strategy of PODs update:
+ *                 -recreate: delete all old PODs then create new PODs,
+ *                 -rollingUpdate: { delete old POD, create new POD} - update one after one
+ *                 -customStrategy
+ *    SERVICE - netInterface to PODs; loadBalancer/serverSideServiceDiscovery for PODs;
+ *              outside router for PODs: POD -> outsideDB
+ *              parameters: REPLICA SET + portMapping for input traffic
+ *    CONFIGMAP.yaml - yaml with settings( param.key1:value1) for Manifests( .yaml descriptions)
+ *
+ * Manifest - YAML/JSON doc to describe Objects
+ *
+ * kubectl - console util to control Objects and Manifests
+ *   kubectl apply -f Service.yaml --record
  */
 // ________________________________ AWS
 /**
@@ -674,8 +751,8 @@ package com.peshkoff;
  * AWS ECS - Elastic Container Service ( EC2 + Docker):
  *           orchestration service to -deploy, -manage, -scale containerized app;
  *           allows to focus on app not environment;
- *           send your container instance log information to CloudWatch Logs ?
- *  Cluster - logical and regional group of Tasks or ECS Instances; intention - isolate our app; payment for EC2
+ *           send your container instance log information to CloudWatch Logs
+ *  Cluster - logical and regional group of Tasks or ECS Instances; intention - isolate our app;
  *  Instance - EC2 + DockerServer
  *  Task Definition - JSON doc, describes containers (up to 10 containers); analogue of DockerCompose
  *                    DockerContainer/Image  + DRAM + CPU + Ports
@@ -683,10 +760,9 @@ package com.peshkoff;
  *  Service - Tasks manager: maintain desired Tasks number, reload terminated/failed Tasks, terminate redundant Tasks; AutoScalingGroup for containers;
  *            creates Tasks on basis: TaskDefinition + serviceDescription
  *  Launch types:
- *  - EC2 LaunchType: EC2 + Docker in Cluster
- *  - Fargate LaunchType: serverless: WITHOUT EC2 and infrastructure
- *                 - payment for runningContainers;
- *                 - NetworkMode for each Container: "AWSVPC"( new NetworkInterface/ip)
+ *  - EC2 LaunchType: EC2 + Docker in Cluster;                        - payment for EC2
+ *  - Fargate LaunchType: serverless: WITHOUT EC2 and infrastructure; - payment for runningContainers;
+ *                                    NetworkMode for each Container: "AWSVPC"( new NetworkInterface/ip)
  *   TaskDefinition +     |  -> {Task + ElasticNetworkInterface(ip)}_1; ..
  *   Sevice (optionally)  |  -> {Task + ElasticNetworkInterface(ip)}_N
  *
@@ -723,11 +799,39 @@ package com.peshkoff;
  * Qualifier - version/alias "my-func:1" or "my-func:PROD"
  * Destination - AWS resource for messages from Lambda ( errors or success)
  *
- * AWS API Gateway ?
+ * LambdaFunctionHandlers:
+ * import com.amazonaws.services.lambda.runtime.Context, RequestHandler, LambdaLogger
+ * public class Handler implements RequestHandler<Map<String,String>, String>    {
+ *   public String handleRequest(Map<String,String> event, Context context)  {..}}
+ *
+ * public class HandlerS3 implements RequestHandler<S3Event, String> {
+ *   public String handleRequest(S3Event event, Context context) {..}}
+ *
+ * public class HandlerStream implements RequestStreamHandler {
+ *   public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context) throws IOException
+ *   {..}                                                     }
+ *
+ * LambdaFunction by Container
+ * - Use BaseLambdaImage( myLambda <-HTTP interface-> AWS Lambda) to build myImage
+ * - Upload myImage int ECR
+ * - Create/update myFunction with myImage
+ *
+ * AWS API Gateway - publish, monitor( CloudWatch), secure: AWS Authorization( IAM), AWS Keys(KMS),
+ *                   Cache for REST only, trafficManagement - throttling
+ *                   payment = callsNumber + traffic;
+ *                   for - REST API, - WebSocket API
+ *  Req  <->  API Gateway[ Cache, CloudWatch]  <->  API: EC2, ECS, Lambda, anyEndpoints
+ *
+ * AWS CloudWatch Logs - centralize all logs
+ *    LogEvent - Timestamp + eventMessage
+ *    LogStream - List<LogEvents> from single logSource: app, resource, ..
+ *    LogGroup - List<LogStream>
+ *    LogEvents -MetricFilter-> CloudWatch metric
+ *    Retention settings - expiration settings for logs
+ *
  * AWS CloudFormation ?
  * AWS KMS - Key Management Service
  *
- * AWS CloudWatch Logs ?
  *
  * **/
  public class ThirdParty {
