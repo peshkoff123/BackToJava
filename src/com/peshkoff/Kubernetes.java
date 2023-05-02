@@ -2,7 +2,7 @@ package com.peshkoff;
 // ________________________________ Kubernetes
 // https://www.youtube.com/watch?v=gMmcRbd8L5Y  JavaTechie K8s article
 // https://www.youtube.com/watch?v=jfqa7lRXDBI   Kubernetes: Ingress, Service, PV, PVC, ConfigMap, Secret. Вечерняя школа Слёрма по Kubernetes.
-/** Kubernetes - opensource platform to automatically deploy, manage, scale containers in high-loaded distributed system.;
+/** Kubernetes - open source platform to automatically deploy, manage, scale, monitor Containers in high-loaded distributed system;
  *               facilitate declarative config and automation;
  *               Kubernetes originates from Greek, meaning helmsman(рулевой) or pilot
  *   + effective using of hardwareResources and infrastructure ( Up/DownContainers ~ load)
@@ -20,7 +20,7 @@ package com.peshkoff;
  *  - Cluster: set of worker machines/Nodes + MasterNode
  *  - Node/Worker - VM/HardwareServer + Docker + [KUBELET(agent) + KUBE-PROXY]; hosts Pods
  *     - kubelet - agent runs on each Node; manages( runs, healthChecks) Containers described in PodSpecs; can self-register in ControlPlane
- *     - KUBE-PROXY - network proxy runs on each Node, load balancing between Pods in Node, routing - traffic forward between Pods and outside
+ *     - KUBE-PROXY - network proxy runs on each Node, load balancing between Pods in Node; routs traffic between Container(s)
  *     - ContainerRuntime - soft runs Containers( typically -Docker); RuntimeClass defunes particular container runtime
  *  - ControlPlane - (MasterNode) manages the K-sCluster; orchestration layer to manage WorkerNodes and Pods;
  *                   ControlPlaneComponents - scheduling, starting new Pods, ..
@@ -43,15 +43,17 @@ package com.peshkoff;
  * - Pod - "logical host"; group 1..n logically tied Containers with shared storage and network resources;
  *         all Containers co-located and co-scheduled to run on same node in shared context;
  *         has clusterIP "IP-per-pod" model.; min controllable entity
- * - ReplicaSet - (obsolete ReplicationController) POD + Container(POD)Number(autoscale system)
+ * - ReplicaSet - obsolete ReplicationController( didn't have selector in its spec);
+ *                POD + Container(POD)Number; support spec scale( POD number)
  * - Dwployment - to manage Pods, scale/update runningApp; for stateless/interchangeable Pods/workload
- *                REPLICASET = strategy of PODs update:
- *                -recreate: delete all old PODs then create new PODs,
- *                -rollingUpdate: { delete old POD, create new POD} - update one after one
- *                -customStrategy
+ *                REPLICASET + strategy of PODs update; Strategies:
+ *                -Recreate: delete all old PODs then create new PODs,
+ *                -RollingUpdate: { delete old POD, create new POD} - update one after one to reach zero downtime
+ *                -CustomStrategy
  *                 kubectl create deployment my-depl --image=doc-image --port=8080 --replicas=4
  * - StatefulSet - for Pods with persistence; Pods matches PersistentVolume
  * - PersistentVolume - independent resource like DockerVolume;
+ *                      PV reclaimPolicy: Retain, Delete
  * - PersistentVolumeClaim - request to mount PV;
  *                           accessModes : [ReadWriteOnce(single POD),ReadWriteMany(many PODs)]
  * - StorageClass - parameters to access to storage ( URL, login/password,..); StorageClass: NFS, RBD,..
@@ -60,8 +62,8 @@ package com.peshkoff;
  *             outside router for PODs: HTTP <-> POD <-> outsideDB
  *             parameters: REPLICA SET + portMapping for input traffic
  *             ServiceTypes:
- *             -ClusterIP( def) - IP inside K8sCluster,
- *             -NodePort - somePort for all workerNodes,
+ *             -ClusterIP( def) - one IP inside K8sCluster -> PODs( with diff IPs)
+ *             -NodePort - ClusterIP( autoCreated) + somePort open for all workerNodes in ReplicaSet,
  *             -ExternalName - DNS CNAME Record
  *             -LoadBalancer - for cloudCluster only(AWS, AZURE,GC); able provide outside DNS name
  * - Ingress - API object(configuration) maps external HTTP/HTTPS requests to Services;
@@ -80,7 +82,8 @@ package com.peshkoff;
  * - HorizontalPodAutoscaler - autoScale Deployment.name (or Pods ?)
  *                             in range [ minReplicas:2; maxreplicas:6]
  *                             according to metrics [ cpu : 80% or memory : 70%]
- * - Job - runs Pod(s) to carry out task and then stop. Job is one-off task
+ * - Job - runs Pod(s) to carry out task and then stop. Job is one-off task.
+ *         --activeDeadlineSeconds : 200  max Job duration, overcome - Job terminated
  * - CronJob - Job with schedule
  * - Secret, ConfigMap - K8s stores sensitive info; data stored in ETCD; all - key-value view
  * - Secret - encryptedText( passwords),
@@ -219,5 +222,20 @@ package com.peshkoff;
  *
  * HELM - package manager for K8s; CLI; + variables for Manifests in separate file(s)
  */
+/* ______________________ Q&A
+* - Docker Swarm - default orchestration tool comes wih Docker. It simpler than K8s:
+*   - no auto-scaling; - no GUI; can deploy rolling updates but can't deploy automatic rollbacks;
+*   - need ELK stack for logging and monitoring while K8s has integrated tools
+* - Heapster - cluster-wide Container monitoring tool and event aggregation; it has native support in K8s
+* - PV - PVC - one-to-one always; if PV reclaimPolicy: Retain - PV will still be occupied/reserved
+*   PV reclaimPolicy: Retain, Delete
+* - Deploy wih zero downtime - Deployment.strategy : RollingUpdate
+* - HeadLess Service - Service without clusterIP; enables to reach PODs without proxying
+* - Namespace - way to segregate Cluster logically( for diff teams); if not spec -used "default"
+* - Sematext Docker Agent - small Container/agent in each Docker host; it collects logs, events, metrics for Container and Cluster
+* - POD spawns automatically on any available Node chosen by Scheduler. If need to spawn POD on specific Node( CPU, memory)
+*   use taints and toleration?
+* - taints and toleration?
+* */
 public class Kubernetes {
 }
