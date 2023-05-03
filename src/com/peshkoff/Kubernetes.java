@@ -85,12 +85,18 @@ package com.peshkoff;
  * - Job - runs Pod(s) to carry out task and then stop. Job is one-off task.
  *         --activeDeadlineSeconds : 200  max Job duration, overcome - Job terminated
  * - CronJob - Job with schedule
- * - Secret, ConfigMap - K8s stores sensitive info; data stored in ETCD; all - key-value view
- * - Secret - encryptedText( passwords),
+ * - Secret, ConfigMap - K8s stores sensitive info; data stored in ETCD; all - key-value view;
+ *                       ConfigMap.data:
+ *                         key1 : value             # property-like keys
+ *                         key2 : | game.prop1=2    # file-like keys
+ *                                  game.prop2=".."
+ *
+ * - Secret - encryptedText( passwords), encoded in "base64"
  * - ConfigMap - plain text;
  * - DaemonSet
  * - Lease // https://kubernetes.io/docs/concepts/architecture/leases/
- * - apiVersion - way to categorize K8s api
+ * - NetworkPolicy - work on OCI layer 3 and 4: ip : port
+ * - ServiceMash - OCI layer 7; features: RateLimiting, Throttling, CircuitBreaker, proxyToProxySecurity, tracing,..
  *
  * Volumes - basically is a directory; to spec volumes: ".spec.volumes" + ".spec.containers[*].volumeMounts"
  *  - ephemeral - default, lifetime as its Pod( not Container)
@@ -105,6 +111,7 @@ package com.peshkoff;
  *            Deployment.yml - infrastructure description; IaaC - Infrastructure as a Code
  *   + infrastructure versions and change tracking
  *   + fast and reliable deploy
+ * apiVersion: v1(app/v1) - way to categorize K8s api
  * metadata:
  *     name: API_group/resType/NameSpace/Name - unique for all API_versions;
  *           each name: 256 symbol lim, lowerCase + "-"/".", start/end with alphanumeric only.
@@ -236,6 +243,20 @@ package com.peshkoff;
 * - POD spawns automatically on any available Node chosen by Scheduler. If need to spawn POD on specific Node( CPU, memory)
 *   use taints and toleration?
 * - taints and toleration?
+* - K8s use cases: Microcervices, Jenkins on K8s, GitLab on K8s
+* - DaemonSet - Container runned on all PODs; each daemonContainer has diff IPs
+* - SideCar - additional Container runned alongside with main Container on same POD; addContainer_IP = mainContainer_IP
+* - Sense to use EKS - highly available and scalable ControlPlane
+*                    - Console and GUI
+*                    - provider version and security updates
+*                    - additional tools and addons
+* - etcd - open source key-value clusterized storage; used by K8s and others
+* - K8s backup - etcd backup: cloud providers takes backup, use special backupTools
+*              - PV backup: use K8s snapshot API, use special backupTools
+* - NetworkPolicy - work on OCI layer 3 and 4: ip : port
+* - ServiceMash - OCI layer 7; features: RateLimiting, Throttling, CircuitBreaker, proxyToProxySecurity, tracing,..
+* -
+*
 * */
 public class Kubernetes {
 }
