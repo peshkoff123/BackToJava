@@ -219,8 +219,10 @@ public class CoreJava {}
  *  Interface Lock:
  *    lock.lock();                   // blockingLock - waite for lock
  *      try {...} finally{ lock.unlock():}
- *    if( lock.tryLock( timeOut))    // nonblockingLock
- *      { ...; lock.unlock();} else {..}
+ *    if( lock.tryLock( timeOut)) {    // nonblockingLock
+ *       ...;
+ *       if( lock.isHeldByCurrentThread()) lock.unlock();
+ *    } else {..}
  *    ReentrantLock - mutualExclusive impl of Lock
  *  Interface ReadWriteLock - for one write lock/thread and many read locks/threads.
  *  ReadWriteLock.WriteLock
@@ -335,7 +337,13 @@ public class CoreJava {}
  * - FailSafe Iterator - doesn't: Snapshots in CopyOnWriteArrayList; ConcurrentHashMap is weakly consistent
  * - Immutable obj: final class, private final fields, getters ret copy of fields( not refs);
  *                  good for HashMap(Table) due to unchanged hashCode, thread-safe
- * - Optional - objWrapper, rid of checks "== null", used in Streams
+ * - Optional - objWrapper, rid of checks "== null", used in Streams and FunctionalProgramming
+ *   <T> Optional<T> .of( T t), .ofNullable( T t), .empty()     // static create
+ *   bool .isPresent();                                         // if empty - bool
+ *   <T> .get()                                                 // if empty - exception
+ *   <T> .orElse( T defVal), .orElseGet( Supplier::<T>get())    // if empty - defValue or invoke code
+ *   <U> Optional<U> .map( Function:: Optional<U>apply( U val)) // if empty - Optional.empty()
+ *
  * - Boxing/Unboxing - only for exact correspondence ( byte<->byte, int<->Integer)
  * - array[] extends Object
  * - Templates/Patterns
@@ -372,6 +380,23 @@ public class CoreJava {}
  * - String.length() - ret "number of Unicode code units"; some of chars consists of two "code units"
  *                     str.codePointCount( 0, str.length())
  * - String Palindrome - manually( StringBuilder.reverse() + compare); StringUtils - int 3d party(Apache)
- * - class ThreadLocal: .T get(), .set( T t) has separate T for each thread
+ * - class ThreadLocal<T>: .T get(), .set( T t) has separate T for each thread
+ *   static final ThreadLocal<Integer> tl = new ThreadLocal<Integer>()
+ * - class InheritableThreadLocal<T> ext ThreadLocal<T> to get copies of all InheritableThreadLocal vars from parent Thread
+ *   T childValue( T parentVal)  // override to change parentVal for that new Thread
+ * - Collect thread DUMP (deadlock, proses hung ):
+ *     %JAVA%/jps -l      // list of Java proses
+ *     %JAVA%/jstack.exe  // Java proses stack
+ * - HTTP Clients:
+ *   - URL url = new URL("URL");
+ *     HttpURLConnection con = (HttpURLConnection)url.openConnection();
+ *     con.setRequestMethod("GET");
+ *     BufferedReader br = new BufferedReader( new InputStreamReader( con.getInputstream()));
+ *     while( (s=br.readLine()) != null) { ..;}
+ *   - RestTemplate restTemplate = new RestTemplate();
+ *     HttpEntity<MultiValueMap<String,String>> request = new HttpEntity( <body>, new Headers());
+ *     ResponseEntity<String> resp = restTemplate.exchange( "url", HttMethod.POST, request, String.class);
+ *     resp.getBody();
+ *
  * - ComplitableFuture
  */

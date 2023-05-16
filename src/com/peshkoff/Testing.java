@@ -40,6 +40,7 @@ package com.peshkoff;
  *  @ParameterizedTest + @ValueSource(strings={"a","b"}) - multiple testMethod execution with input parameter
  *      void palindromes(String candidate) { assertTrue( StringUtils.isPalindrome( candidate));}
  *  @RepeatedTest(10)
+ *    @Execution(CONCURRENT)
  *  @TestMethodOrder + @Test + @Order(1)
  *  @DisplayName("name") - for all class and each test
  *  @BeforeEach, @AfterEach

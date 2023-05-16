@@ -54,6 +54,7 @@ public class Spring {}
  *  //https://docs.spring.io/spring-framework/docs/4.1.0.RC2/spring-framework-reference/html/transaction.html
  *  Declarative transaction - @Transactional
  *  ProgrammaticTransaction - TransactionTemplate - intended Spring class.
+ *                            TransactionTemplate::execute( ()-> Transactioncode )
  *  @Transactional - marks method works with Connection/Transaction, informs Spring it need to open and then commit it.
  *                   applied for a class - all methods @Transactional
  *  - propagation.
@@ -67,6 +68,10 @@ public class Spring {}
  *  Правила управления откатом
  *  - noRollbackFor и noRollbackForClassName - определяет исключения, при которых транзакция НЕ будет откатана
  *  - rollbackFor и rollbackForClassName - определяет исключения, при которых транзакция БУДЕТ откатана
+ *
+ *  @Transactional void doTrans1() { ..; doTrans2(); ..}         // Only 1 transaction
+ *  @Transactional( propagation=Propagation.REQURES_NEW) void doTrans2() { ..}
+ *  // Nested transactions: - TransactionTemplate; - inject oneself if scope=singletone; - get ref on my proxy any other way
  *
  *  TransactionManager markInterface
  *  ReactiveTransactionManager impl TransactionManager
@@ -142,8 +147,10 @@ public class Spring {}
  *   private String pass;
  *   public userDao( @Value("${db.pass}") String pass) {...;}
  *
- *   @EventListener //get events from appContext
- *   public void prosessAppContextEvent( someEvent) {...;}
+ *   @EventListener        //get events from appContext
+ *   public void prosesContextEvent( someEvent) {...;}
+ *     @EventListener( classes={ContextRefreshedEvent.class,ContextStartedEvent.class})
+ *     public void prosesContextEvent() { Logger..;}
  *  }
  *
  *
@@ -319,7 +326,7 @@ public class Spring {}
  * - Как создаются бины: сразу или лениво? Как изменить это поведение?
  *    - Singleton-создаются сразу при сканировании.
  *    - Prototype-бины обычно создаются только после запроса.
- *    - @Lazy = @Lazy(true) Чтобы указать способ инициализации, можно использовать аннотацию @Lazy.
+ *    - @Lazy = @Lazy(true) Create Proxy::bean=null; bean created by request/invoke to avoid circular dependency
  * - Use Interfaces for Beans:
  *    - testing: use mock/stub
  *    - механизм динамических прокси из JDK(например, при создании репозитория через Spring Data)
@@ -404,7 +411,7 @@ public class Spring {}
  * - Spring main Exceptions:
  *    NoSuchBeanDefinitionException
  *    NonUniqueBeanDefinitionException  // @Bean @Primary <beanDef> - to fix it
- *    BeanCreationException             // @Bean @Lazy <beanDef> - circular dependency
+ *    BeanCreationException             // @Bean @Lazy <beanDef> - to avoid/resolve circular dependency
  *    BeanInstantiationException        // if bean is abstract class or Exception in class constructor
  *    ApplicationContextException       // there is no @SpringBootApplication
  *
@@ -438,6 +445,16 @@ public class Spring {}
  *
  * - SpringBoot load application.yaml first then application.properties; application.properties OVERRIDE yaml
  *
+ * - @Autowired BeanFactory beanFactory;  ...; beanFactory.getBean( bean.class/"beanName");
+ *
+ * - IntegratedTests:
+ *
+ *   @ContextConfiguration( class=SimpleTestConfig.class) // SimpleTestConfig - myClass with Beans creation
+ *                                                        // to avoid @ComponentScan
+ *   @SpringBootTest
+ *
+ *   @Async
+ *   Not use in @Transactional method!
  * */
 // ________________________________ Spring Cloud
 /**  ClientSideLoadBalancer: SpringCloudLoadBalancer, Ribbon( Netflix, obsolete)

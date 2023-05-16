@@ -7,6 +7,7 @@ import sun.awt.windows.WSystemTrayPeer;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class LeetCodeTasks {
@@ -40,6 +41,8 @@ public class LeetCodeTasks {
         LeetCode_Task424();
         LeetCode_Task3();
         LeetCode_Task200();
+        LeetCode_Task59();
+        LeetCode_Task48();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -1127,4 +1130,96 @@ public class LeetCodeTasks {
 
         return island1;
     }
+
+
+    //https://www.youtube.com/watch?v=ot7kdFsddTg
+    public static void LeetCode_Task59() {
+        System.out.println("generateMatrix : " + landToString( generateMatrix((byte)3)) );
+        System.out.println("generateMatrix : " + landToString( generateMatrix((byte)4)) );
+    }
+    private static byte[][] generateMatrix( byte n) {
+        class XY {
+           public int x = 0, y = 0, dir = 1;
+           public void changeDir() {
+               dir++;
+               if( dir == 5)
+                   dir = 1;
+           }
+           public boolean isOutOfBounds( int n) {
+               if( x < 0 || x >= n) return true;
+               if( y < 0 || y >= n) return true;
+               return false;
+           }
+           public void nextStep() {
+               switch ( dir) {
+                   case 1: x++; break;
+                   case 2: y++; break;
+                   case 3: x--; break;
+                   case 4: y--; break;
+               }
+           }
+           public void backStep() {
+                switch ( dir) {
+                    case 1: x--; break;
+                    case 2: y--; break;
+                    case 3: x++; break;
+                    case 4: y++; break;
+                }
+            }
+        }
+
+        byte[][] res = new byte[ n][ n];
+        byte val = 0;
+        XY xy = new XY();
+        res[ xy.y][ xy.x] = ++val;
+
+        while( val < n * n) {
+            xy.nextStep();
+            if (xy.isOutOfBounds(n) || res[xy.y][xy.x] != 0) {
+                   xy.backStep();
+                   xy.changeDir();
+            } else res[xy.y][xy.x] = ++val;
+        }
+
+        return res;
+    }
+
+    //
+    public static void LeetCode_Task48() {
+        byte[][] image = new byte[][]{ {1,2},
+                                       {3,4}};
+        System.out.println("Source Image : "  + landToString(              image) );
+        System.out.println("Rotated Image : " + landToString( rotateImage( image)) );
+
+        image = new byte[][]{ {1,2,3},
+                              {4,5,6},
+                              {7,8,9}};
+        System.out.println("Source Image : "  + landToString(              image) );
+        System.out.println("Rotated Image : " + landToString( rotateImage( image)) );
+
+        image = new byte[][]{ {1,2,3,4},
+                              {5,6,7,8},
+                              {9,10,11,12},
+                              {13,14,15,16}};
+        System.out.println("Source Image : "  + landToString(              image) );
+        System.out.println("Rotated Image : " + landToString( rotateImage( image)) );
+
+    }
+    private static byte[][] rotateImage( byte[][] image) {
+        int beg = 0, end = image[ 0].length-1;
+
+        do {
+            for (int i = beg; i < end; i++) {
+                byte t = image[beg][beg + i];
+                image[beg][beg + i] = image[end - i][beg];
+                image[end - i][beg] = image[end][end - i];
+                image[end][end - i] = image[beg + i][end];
+                image[beg + i][end] = t;
+            }
+            beg++; end--;
+        } while( beg < end);
+
+        return image;
+    }
+
 }

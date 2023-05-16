@@ -202,6 +202,64 @@ package com.peshkoff;
  *  clean - delete /target folder (all previously compiled classes, resources, packages)
  *
  *  site - generate docs and site
+ *
+ *  BOM - Bill Off Materials - special kind of POM to control the versions in central place.
+ *  Precedence of artifact versions:
+ *   1. direct declaration in POM
+ *   2. inheritance from parent BOM
+ *   3. import from BOM; first find version is used
+ *   4. dependency mediation:  A -> B -> C -> D 1.4 : A -> E -> D 1.0 => D 1.0
+ *
+ * BOM description:
+ * <project ...>
+ *     <modelVersion>4.0.0</modelVersion>
+ *     <groupId>baeldung</groupId>
+ *     <artifactId>Baeldung-BOM</artifactId>
+ *     <version>0.0.1-SNAPSHOT</version>
+ *     <packaging>pom</packaging>
+ *     <name>BaelDung-BOM</name>
+ *     <description>parent pom - BOM</description>
+ *     <dependencyManagement>
+ *         <dependencies>
+ *             <dependency><groupId>test</groupId>
+ *                         <artifactId>b</artifactId>
+ *                         <version>1.0</version>
+ *                         <scope>compile</scope>
+ *      ...
+ *
+ *  BOM usage in POM:
+ *  <project ...>
+ *     <modelVersion>4.0.0</modelVersion>
+ *     <groupId>baeldung</groupId>
+ *     <artifactId>Test</artifactId>
+ *     <version>0.0.1-SNAPSHOT</version>
+ *     <packaging>pom</packaging>
+ *     <name>Test</name>
+ *     <parent>                        <! Inheritance - only from one parent >
+ *         <groupId>baeldung</groupId>
+ *         <artifactId>Baeldung-BOM</artifactId>
+ *         <version>0.0.1-SNAPSHOT</version>
+ *     </parent>
+ *
+ *     <dependencyManagement>
+ *         <dependencies>
+ *             <dependency>            <! Importing - many BOM available>
+ *                 <groupId>baeldung</groupId>
+ *                 <artifactId>Baeldung-BOM</artifactId>
+ *                 <version>0.0.1-SNAPSHOT</version>
+ *                 <type>pom</type>
+ *                 <scope>import</scope>
+ *     ...
+ *
+ *  Import the spring-framework-bom to ensure all Spring dependencies are at the same version:
+ *  <dependencyManagement>
+ *     <dependencies>
+ *         <dependency>
+ *             <groupId>org.springframework</groupId>
+ *             <artifactId>spring-framework-bom</artifactId>
+ *             <version>4.3.8.RELEASE</version>
+ *             <type>pom</type>
+ *             <scope>import</scope>
  **/
 // ________________________________ Git
 /** Git - for maintaining fileSystemSnapshots at specific time moments
