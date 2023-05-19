@@ -18,6 +18,9 @@ public class LeetCodeTasks {
         LeetCode_Task20();
         TreePassLeftRight();
         TreePassTopBottom();
+        searchTreeToOrderedArr();
+        FindSumInSearchTree_I();
+        FindSumInSearchTree_II();
         LeetCode_Task100();
         LeetCode_Task217();
         LeetCode_Task771();
@@ -240,6 +243,106 @@ public class LeetCodeTasks {
             nodeArr = newNodeArr;
         } while (nodeArrCount > 0);
 
+    }
+
+    //        4
+    //     2     6
+    //   1   3  5  7    => 1234567
+    private static int[] _treeToArr = null;
+    private static int _treeToArrCount = 0;
+    public static void searchTreeToOrderedArr() {
+        Node a = new Node(4, new Node(2, new Node(1), new Node(3)),
+                                new Node(6, new Node(5), new Node(7)) );
+
+        _treeToArr = new int[ 4];
+        _treeToArrCount = 0;
+        _searchTreeToOrderedArr( a);
+
+        System.out.println("_searchTreeToOrderedArr( Node root) = " );
+        Arrays.stream( _treeToArr).mapToObj( i -> String.valueOf( i)+", ").forEach( System.out::print);
+        System.out.print("\r\n");
+    }
+    private static void _searchTreeToOrderedArr( Node n) {
+        if( n.left != null)
+            _searchTreeToOrderedArr( n.left);
+
+        if( _treeToArrCount >= _treeToArr.length)
+            _treeToArr = Arrays.copyOf( _treeToArr, _treeToArr.length *2);
+        _treeToArr[ _treeToArrCount++] = n.val;
+
+        if( n.right != null)
+            _searchTreeToOrderedArr( n.right);
+    }
+
+    // SearchTree -> OrderedList -> SearchInOrderedList
+    public static void FindSumInSearchTree_I() {
+        // Tree from searchTreeToOrderedArr()
+        Node a = new Node(4, new Node(2, new Node(1), new Node(3)),
+                new Node(6, new Node(5), new Node(7)) );
+
+        _treeToArr = new int[ 7];
+        _treeToArrCount = 0;
+        _searchTreeToOrderedArr( a);
+
+        System.out.println("_searchTreeToOrderedArr( "+Arrays.toString( _treeToArr)+", "+12+") = "+
+                Arrays.toString( _searchSumInOrderedArr( _treeToArr, 12)) );
+
+        _treeToArr = new int[]{ 1, 2, 4, 5, 6, 7, 9};
+        System.out.println("_searchTreeToOrderedArr( "+Arrays.toString( _treeToArr)+", "+12+") = "+
+                Arrays.toString( _searchSumInOrderedArr( _treeToArr, 12)) );
+        _treeToArr = new int[]{ 1, 2, 4, 5, 6, 7, 10};
+        System.out.println("_searchTreeToOrderedArr( "+Arrays.toString( _treeToArr)+", "+13+") = "+
+                Arrays.toString( _searchSumInOrderedArr( _treeToArr, 13)) );
+
+    }
+    // 1 2 3 4 5 6 7; 12 => 7+5, 9 => 6+3,..
+    private static int[] _searchSumInOrderedArr( int[] orderedArr, int sum) {
+        int[] res = { 0, 0};
+        int l = 0, r = orderedArr.length-1;
+        while( l < r) {
+           if( orderedArr[ l] + orderedArr[ r] == sum) {
+               res = new int[]{ orderedArr[ l], orderedArr[ r]};
+               break;
+           }
+           if( orderedArr[ l] + orderedArr[ r] < sum)
+               l++;
+           if( orderedArr[ l] + orderedArr[ r] > sum)
+               r--;
+        }
+        return res;
+    }
+
+    //        4
+    //     2     6
+    //   1   3  5  7    => 1234567
+    // FindInSearchTree(Sum/2 <= n < Sum) + FindInSearchTree( m = Sum - n) -> n+m=Sum
+    public static void FindSumInSearchTree_II() {
+        Node a = new Node(4, new Node(2, new Node(1), new Node(3)),
+                new Node(6, new Node(5), new Node(7)) );
+        int Sum = 7;
+        int max = Sum;
+        while( true) {
+            max = findBiggestLessMax( a, max);
+            if( max == Integer.MIN_VALUE) break;
+            if( max < Sum/2) break;
+            if( findEqual( a, Sum-max)) {
+                System.out.println("FindSumInSearchTree_II( "+Sum+") = "+max+" + "+(Sum-max) );
+                break;
+            }
+        }
+    }
+    private static int findBiggestLessMax( Node n, int max) {
+        if( n == null) return Integer.MIN_VALUE;
+        if( n.val < max) return Integer.max( n.val, findBiggestLessMax( n.right, max));
+        if( n.val >= max) return findBiggestLessMax( n.left, max);
+
+        return Integer.MIN_VALUE;
+    }
+    private static boolean findEqual( Node n, int val) {
+        if( n == null) return false;
+        if( n.val == val) return true;
+        if( n.val < val) return findEqual( n.right, val);
+        return findEqual( n.left, val);
     }
 
     // ContainsDuplicate

@@ -148,7 +148,7 @@ public class CoreJava {}
  *  FileChannel - analog of RandomAccessFile.//FileChannel fc = FileChannel.open(file, READ, WRITE)
  * */
 // ________________________________ NIO
-/* Buffer
+/** Buffer
  *    abstract Buffer     [..,limit,..,position,..,capacity]
  *    ByteBuffer  direct(native IO operations, not GC)/indirect; convert <=> anyOtherTypeBuffers;
  *                get/putAnyOtherType( AnyOther value);
@@ -200,7 +200,7 @@ public class CoreJava {}
  *
  * */
 // ________________________________ MultiThreads (AtomicityVisibilityOrdering)
-/* java.lang.Runtime.availableProcessors()
+/** java.lang.Runtime.availableProcessors()
  *                   .freeMemory()
  * Thread: Recommended not use wait()/notify() on Threads
  *          ReentrantSynchronization : synchronized( a) { synchronized(a) { ... }}
@@ -314,7 +314,7 @@ public class CoreJava {}
  *
  * */
 // ________________________________ CoreJava Q_And_A
-/* - JVM memory:    Heap                        |    PermGen/MetaSpace
+/** - JVM memory:    Heap                        |    PermGen/MetaSpace
  *     Eden -GC-> Survivor -GC-> OldGeneration  |  Classes + ClassLoaders( must be destroyed manually)
  * - switch( type): byte, short, int, and wrappers, String, Enum
  * - Wrappers implement Serializable, Comparable; Number - super for all digitals
@@ -398,5 +398,43 @@ public class CoreJava {}
  *     ResponseEntity<String> resp = restTemplate.exchange( "url", HttMethod.POST, request, String.class);
  *     resp.getBody();
  *
- * - ComplitableFuture
- */
+ * - Future<String> future = executor.submit( new Callable<String>() {
+ *                                                public String call() { return "Res"; }});
+ *   try {  future.get()); // use future
+ *       } catch( ExecutionException ex) { ..; }
+ * - FutureTask<String> future = new FutureTask<>( new Callable<String>() {
+ *                                                 public String call() {return "res";  }});
+ *   executor.execute( future);
+ *   FutureTask - base implem of Future<T>; direct control: run(), set( V v), cancel(), setException(Throwable t)
+ *                                                          isCancelled(), isDone(), get()
+ * - ComplitableFuture<T> impl Future<T>, CompletionStage<T>
+ *     complete(T retVal), completeExceptionally(Throwable t), cancel()  // control execution
+ *
+ *    CompletionStage<T> - combine sync and async computations stages with/without passing result
+ *     .runAsync(Runnable r, Executor e)            // async computations, if no Executor -
+ *     .supplyAsync( Supplier::V get(), Executor e) // used ForkJoinPool.commonPool(): pool is statically constructed;
+ *
+ *        CompletableFuture<String> f = CompletableFuture.supplyAsync( () -> "Hi");
+ *        f.get();                                             // blocking
+ *        f.thenApply( res -> { return res + " all"});         // callBack
+ *        f.thenAccept( res -> System.out.println( res));      // res = "Hi all"
+ *
+ *     CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> 10)
+ *       .thenCompose(Async)(result -> CompletableFuture.supplyAsync(() -> result * 2))
+ *       .thenCompose(Async)(result -> CompletableFuture.supplyAsync(() -> result * 5));
+ *
+ *     U Function.apply(T), Consumer.accept(T), Runnable.run()
+ *     stage.thenApply(x -> square(x)).thenAccept(x -> System.out.print(x)).thenRun(() -> System.out.println())
+ *     thenApply, thenAccept, thenRun                 // run in mainThread
+ *     thenApplyAsync, thenAcceptAsync, thenRunAsync  // run in ForkJoinPool.commonPool()
+ *
+ *   Exceptions: handle(Async)(), exceptionally()
+ *     CompletableFuture<Integer> future =
+ *     CompletableFuture.supplyAsync(() -> { throw new RuntimeException("error in async running"); })
+ *                .handle( (obj, err) -> { System.out.print( err.getMessage()); return 10; });
+ *     System.out.println(" "+future.get()); //output java.lang.RuntimeException: error in async running 10
+ *
+ *     CompletableFuture.supplyAsync(() -> { throw new RuntimeException("error in async running");})
+ *                .exceptionally( err -> (5))
+ *                .thenAccept( System.out::println) //output 5
+ **/
