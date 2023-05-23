@@ -42,6 +42,13 @@ public class DB {}
  *     1. Atomic fields
  *     2. 1. + ID (natural ID)
  *     3. 2. + ForeignKey
+ * - QueryPlan - way to analyze SQL request: EXPLAIN, HINT
+ *     EXPLAIN [ ANALYZE  plan + realExecute
+ *               VERBOSE,      ..]
+ *   PostreSQL example:  EXPLAIN SELECT * FROM tenk1 WHERE unique1 = 42;
+ *     QUERY PLAN:
+ *     Index Scan using tenk1_unique1 on tenk1  (cost=0.29..8.30 rows=1 width=244)
+ *     Index Cond: (unique1 = 42)
  * */
 // ________________________________ NoSQL
 /* Distributed (replication), Intended for big data, massively parallel, NoRelational,
@@ -123,6 +130,8 @@ public class DB {}
  *   Projection - specifies set of field
  *
  *   Transaction
+ *     Read uncommitted is the default isolation level and applies to mongoDB standalone instances as well
+ *     as to replica sets and sharded clusters.
  *     Read/Write access to single Doc is serializable.
  *     Transactions for multyDoc access ( in single collection or different).
  *     Write operation is atomic for a single document coll.updateOne() but not for coll.updateMany()

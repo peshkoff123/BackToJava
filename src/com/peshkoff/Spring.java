@@ -447,14 +447,101 @@ public class Spring {}
  *
  * - @Autowired BeanFactory beanFactory;  ...; beanFactory.getBean( bean.class/"beanName");
  *
- * - IntegratedTests:
+ * - Spring Testing:
+ *   //https://rieckpil.de/spring-boot-unit-and-integration-testing-overview/
+ *   Spring-Boot-Starter-Test includes all for UnitTests and IntegratedTests?:
+ *                   JUnit 4/5, Mockito, asertionsLibs: AssertJ, Hamcrest, JsonPath,..
+ * - UnitTests
+ *   Spring Boot offers a lot of annotations to test various parts of your application in isolation:
+ *    @JsonTest, @WebMvcTest, @DataMongoTest, @JdbcTest,..
+ *   The two most important annotations are:
+ *     @WebMvcTest to effectively test your web-layer with MockMvc
+ *     @DataJpaTest to effectively test your persistence layer
+ *   There are also annotations available for more niche-parts of your application:
+ *     @JsonTest to verify JSON serialization and deserialization
+ *     @RestClientTest to test the RestTemplate
+ *     @DataMongoTest to test MongoDB-related code
  *
- *   @ContextConfiguration( class=SimpleTestConfig.class) // SimpleTestConfig - myClass with Beans creation
- *                                                        // to avoid @ComponentScan
- *   @SpringBootTest
+ *     @WebMvcTest( PublicController.class)
+ *     class PublicControllerTest {
+ *     @Autowired  private MockMvc mockMvc;
+ *     @Autowired  private MeterRegistry meterRegistry;
+ *     @MockBean   private UserService userService;
+ *     @TestConfiguration
+ *     static class TestConfig {
+ *     @Bean public MeterRegistry meterRegistry() {
+ *       return new SimpleMeterRegistry();       }
+ *                            }
+ *     }
+ * - IntegratedTests: use the @SpringBootTest annotation for this purpose and access your application from
+ *                    outside using either the WebTestClient or the TestRestTemplate.
+ *   @SpringBootTest - populate the entire application context for your test and start TomCat if webEnvironment=..
+ *   @SpringBootTest( webEnvironment = WebEnvironment.RANDOM_PORT(DEFINED_PORT)) // webEnvironment - to start TomCat !
+ *   class ApplicationTests {
+ *     @LocalServerPort private Integer port;
+ *     @Autowired private TestRestTemplate testRestTemplate;
+ *     @Test void accessApplication() { System.out.println(port);  }
+ *   }
  *
- *   @Async
- *   Not use in @Transactional method!
+ *   @RunWith( SpringJUnit4ClassRunner.class)     // Class to run testCases
+ *   @ContextConfiguration( class=MyConfig.class) // MyConfig - @Configuration Class with Beans creation
+ *                                                // to avoid @ComponentScan
+ *   @ContextConfiguration( classes={ Config1.class, Config2.class}, ... )
+ *   @ContextConfiguration( classes=OrderServiceConfig.class, loader=AnnotationConfigContextLoader.class)
+ *   @ContextConfiguration( "/app-config.xml")    // ApplicationContext loaded from "classpath:/app-config.xml"
+ *
+ *   @ActiveProfiles("dev")                       //
+ *      @Configuration
+ *      @Profile("dev")
+ *      public class StandaloneDataConfig {
+ *        @Bean
+ *        public DataSource dataSource() {
+ * 	    	return new EmbeddedDatabaseBuilder()
+ * 		    	.setType(EmbeddedDatabaseType.HSQL)
+ * 			    .addScript("classpath:com/bank/config/sql/schema.sql")
+ * 			    .addScript("classpath:com/bank/config/sql/test-data.sql")
+ * 			    .build();                } }
+ *
+ *  - @Testcontainers will manage the lifecycle of any Docker container for your test:
+ *    @Testcontainers
+ *    @SpringBootTest( webEnvironment = WebEnvironment.RANDOM_PORT)
+ *    public class ApplicationIT {
+ *      @Container
+ *      public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer()
+ *                                                                  .withPassword("inmemory")
+ *                                                                   .withUsername("inmemory");
+ *      @DynamicPropertySource
+ *      static void postgresqlProperties(DynamicPropertyRegistry registry) {
+ *             registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+ *             registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+ *             registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+ *      }
+ *      @Test  public void contextLoads() {..  }
+ *   }
+ * - End-to-End Tests: integration + UI( usually).As soon as you need to interact with a browser,
+ *   Selenium (+ Selenide) is usually the default choice
+ *
+ * - @Async: applied to public(!) method make it execute in separate thread. Calling the async method from within
+ *          the same class — won't work. Not use in @Transactional method!
+ *     @Configuration
+ *     @EnableAsync
+ *     public class SpringAsyncConfig {            // def executor for @Async methods - SimpleAsyncTaskExecutor
+ *       @Bean( name = "threadPoolTaskExecutor")   // way to define other executor
+ *       public Executor threadPoolTaskExecutor() {  return new ThreadPoolTaskExecutor();  }
+ *     }
+ *   @Async                                        // @Async void method
+ *   @Async( "threadPoolTaskExecutor")
+ *   public void asyncMethodWithVoidReturnType() {
+ *     System.out.println("Execute method asynchronously. " + Thread.currentThread().getName());
+ *   }
+ *   @Async                                        // @Async Future<> method
+ *   public Future<String> asyncMethodWithReturnType() {
+ *     System.out.println("Execute method asynchronously - " + Thread.currentThread().getName());
+ *     try{ Thread.sleep(5000);
+ *           return new AsyncResult<String>("hello world !!!!");
+ *        } catch( InterruptedException e) { ..   }
+ *     return null;
+ *   }
  * */
 // ________________________________ Spring Cloud
 /**  ClientSideLoadBalancer: SpringCloudLoadBalancer, Ribbon( Netflix, obsolete)
