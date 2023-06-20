@@ -94,7 +94,7 @@ public class CoreJava {}
  *      add,addAll, remove,removeAll, iterator, clear, size, toArray
  *  Set - Collection which doesn't have duplications. No additional methods.
  *     Implementations: HashSet - best speed any order, TreeSet, LinkedHashSet
- *  List - Collection with order. AddMethods - add,remove(position), get,set, sort
+ *  List - Collection with order. AddMethods - add,remove(position), get,set, sort( Comparator(not Comparable))
  *      indexOf,lastIndexOf, listIterator, sublist(fromInd,toInd)
  *      ListIterator - bidirectional iterator: hasNext,hasPrev, next,prev,
  *         remove,set(last obj returned by next,prev), nextIndex,prevIndex

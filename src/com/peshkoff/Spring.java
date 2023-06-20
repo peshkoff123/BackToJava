@@ -542,6 +542,68 @@ public class Spring {}
  *        } catch( InterruptedException e) { ..   }
  *     return null;
  *   }
+ *
+ * - Spring WebFlux framework:
+ *   -Reactive RestController <-> WebClient,
+ *   -Reactive WebSocket      <-> WebSocketClient for socket style streaming of Reactive Streams.
+ *
+ *   Work with DB: - WebFlux + JDBC; - WebFlux + R2DBC; - WebFlux + Spring_Data_R2DBC
+ *
+ *   Mono.just(EMPLOYEE_DATA.get(id));          // Mono<Employee>
+ *   Flux.fromIterable(EMPLOYEE_DATA.values()); // Flux<Employee>
+ *
+ *   @EnableWebFluxSecurity
+ *   public class EmployeeWebSecurityConfig {
+ *     @Bean public SecurityWebFilterChain springSecurityFilterChain( ServerHttpSecurity http) {..}
+ *
+ *   @RestController
+ *   @RequestMapping("/employees")
+ *   public class EmployeeController {
+ *     @GetMapping("/{id}")
+ *     public Mono<Employee> getEmployeeById(@PathVariable String id) { return employeeRepository.findEmployeeById(id); }
+ *     @GetMapping
+ *     public Flux<Employee> getAllEmployees() { return employeeRepository.findAllEmployees(); }
+ *
+ *   WebClient client = WebClient.create("http://localhost:8080");
+ *   Mono<Employee> employeeMono = client.get().uri("/employees/{id}", "1")
+ *                                 .retrieve().bodyToMono(Employee.class);
+ *   employeeMono.subscribe(System.out::println);
+ *   Flux<Employee> employeeFlux = client.get().uri("/employees")
+ *                                 .retrieve().bodyToFlux(Employee.class);
+ *   employeeFlux.subscribe(System.out::println);
+ *
+ * - //https://www.youtube.com/watch?v=ECajRLPhVc8 - Почему мы решили переходить на R2DBC и чем это закончилось
+ *   @Repository interface MyRep ext R2dbcRepository<Person, Long> {
+ *     Flux<Person> findAllByAgeGreaterThan( Integer age);          }
+ *   @Entity class Person {
+ *     @Id @Column( "id") Long id;
+ *     @Column( "age") Integer age;
+ *   }
+ *   Flux<String> res = myRep.findAllByAgeGreaterThan( 30).map( Person::getName)
+ *
+ *   R2dbcRepository ext ReactiveCRUDRepository<T,ID> {
+ *       <S ext T> Mono<S> save( S s);
+ *       <S ext T> Flux<S> saveAll( Iterable<S> sList);
+ *       Mono<T> findById( ID id);
+ *       ...
+ *   }
+ *
+ *   - Exist @Transactional for SpringDataR2dbc
+ *   - R2dbc doesn't provide OnToOne and OneToMany!
+ *   - JDBC + R2dbc in single service is POSSIBLE
+ *
+ * - JpaRepository(PagingAndSortingRepository):
+ *   Pageable firstPageWithTwoElements = PageRequest.of(0, 2);
+ *   Pageable sortedByName = PageRequest.of(0, 3, Sort.by("name"));
+ *   Pageable sortedByPriceDesc = PageRequest.of(0, 3, Sort.by("price").descending());
+ *   Pageable sortedByPriceDescNameAsc = PageRequest.of(0, 5, Sort.by("price").descending().and(Sort.by("name")));
+ *   publ interface PersRepository ext JpaRepository/PagingAndSortingRepository<Person, Integer> {
+ *     @Modifying
+ *     @Query("update Person set lastName= :lastName where id= :id")
+ *     void changeLastName( Integer id, String lastName);
+ *     @Query("from Person")
+ *     List<Person> getList( PageRequest pageRequest);
+ *   }
  * */
 // ________________________________ Spring Cloud
 /**  ClientSideLoadBalancer: SpringCloudLoadBalancer, Ribbon( Netflix, obsolete)

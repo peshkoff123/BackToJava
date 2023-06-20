@@ -2,6 +2,7 @@ package com.peshkoff;
 
 import com.sun.deploy.security.BadCertificateDialog;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 import sun.awt.windows.WSystemTrayPeer;
 
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LeetCodeTasks {
 
@@ -46,6 +48,12 @@ public class LeetCodeTasks {
         LeetCode_Task200();
         LeetCode_Task59();
         LeetCode_Task48();
+        LeetCode_Task6();
+        LeetCode_Task7();
+        LeetCode_Task12();
+        LeetCode_Task13();
+        HashTagSearchSort();
+        LeetCode_Task15();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -1323,6 +1331,234 @@ public class LeetCodeTasks {
         } while( beg < end);
 
         return image;
+    }
+
+    public static void LeetCode_Task6() {
+        String s= "PAYPALISHIRING";
+        int rows = 4;
+        System.out.println("convert( "+s+", "+rows+") = "+convert( s, rows));
+        rows = 3;
+        System.out.println("convert( "+s+", "+rows+") = "+convert( s, rows));
+    }
+    private static String convert( String s, int rowNum) {
+      String res = null;
+      String[] sArr = s.split( "");
+      StringBuffer[] sBufs = new StringBuffer[ rowNum];
+      for( int i=0; i<rowNum; i++)
+            sBufs[ i] = new StringBuffer();
+
+      int j=0;
+      sBufs[ 0].append( sArr[j++]);
+      next:
+      for( ; j < sArr.length; ) {
+          for( int i=1; i<rowNum; i++) {
+             if( j >= sArr.length) break next;
+             sBufs[i].append(sArr[j++]);
+          }
+          for( int i=rowNum-2; i>=0; i--) {
+             if( j >= sArr.length) break;
+             sBufs[i].append(sArr[j++]);
+          }
+      }
+
+      for( j=1; j < sBufs.length; j++)
+          sBufs[ 0].append( sBufs[ j]);
+
+      return sBufs[ 0].toString();
+    }
+
+    public static void LeetCode_Task7() {
+        int rows = -123;
+        System.out.println("reverse( "+rows+") = "+reverse( rows));
+        rows = 123;
+        System.out.println("reverse( "+rows+") = "+reverse( rows));
+        rows = 1200;
+        System.out.println("reverse( "+rows+") = "+reverse( rows));
+
+    }
+    private static int reverse( int x) {
+       int res = 0, _x = x;
+       while( _x != 0) {
+           res = res*10 + (_x % 10);
+           _x = _x/10;
+       }
+       return res;
+    }
+
+    /*
+    I             1
+    V             5
+    X             10
+    L             50
+    C             100
+    D             500
+    M             1000*/
+    public static void LeetCode_Task12() {
+        int rows = 12;
+        System.out.println("intToRoman( "+rows+") = "+intToRoman( rows));
+        rows = 27;   // "XXVII"
+        System.out.println("intToRoman( "+rows+") = "+intToRoman( rows));
+        rows = 58;   // "LVIII"
+        System.out.println("intToRoman( "+rows+") = "+intToRoman( rows));
+        rows = 1994; // "MCMXCIV"
+        System.out.println("intToRoman( "+rows+") = "+intToRoman( rows));
+    }
+    private static String intToRoman( int x) {
+        String res = oneDigitToRoman( x%10, "I", "V", "X");
+        x = x/10;
+        res = oneDigitToRoman( x%10, "X", "L", "C") + res;
+        x = x/10;
+        res = oneDigitToRoman( x%10, "C", "D", "M") + res;
+        x = x/10;
+        res = oneDigitToRoman( x%10, "M", "", "") + res;
+        return res;
+    }
+    private static String oneDigitToRoman( int x, String item, String itemFive, String itemTen) {
+        if( 4 == x) return item + itemFive;
+        if( 5 == x) return itemFive;
+        if( 9 == x) return item + itemTen;
+        String res = "";
+        if( 6 <= x && x <=8) {
+            res = itemFive;
+            x = x - 5;
+        }
+        for( int i=0; i<x; i++)
+             res = res + item;
+        return res;
+    }
+
+    public static void LeetCode_Task13() {
+        Map<String, Integer> romeInts = new HashMap<>();
+        romeInts.put( "I", 1);
+        romeInts.put( "IV", 4);
+        romeInts.put( "V", 5);
+        romeInts.put( "IX", 9);
+        romeInts.put( "X", 10);
+        romeInts.put( "XL", 40);
+        romeInts.put( "L", 50);
+        romeInts.put( "XC", 90);
+        romeInts.put( "C", 100);
+        romeInts.put( "CD", 400);
+        romeInts.put( "D", 500);
+        romeInts.put( "CM", 900);
+        romeInts.put( "M", 1000);
+        String rom = "III";
+        System.out.println("intToRoman( "+rom+") = "+RomanToInt( rom, romeInts));
+        rom = "";
+        System.out.println("intToRoman( "+rom+") = "+RomanToInt( rom, romeInts));
+        rom = "XXVII";
+        System.out.println("intToRoman( "+rom+") = "+RomanToInt( rom, romeInts));
+        rom = "LVIII";
+        System.out.println("intToRoman( "+rom+") = "+RomanToInt( rom, romeInts));
+        rom = "MCMXCIV";
+        System.out.println("intToRoman( "+rom+") = "+RomanToInt( rom, romeInts));
+    }
+    private static int RomanToInt( String r, Map<String, Integer> romeInts) {
+        int offs = 0;
+        int res = 0;
+        while( true) {
+          if( offs+2 <= r.length()) {
+              String s = r.substring(offs, offs+2);
+              if (romeInts.containsKey(s)) {
+                  offs += 2;
+                  res += romeInts.get(s);
+                  continue;
+              }
+          }
+          if( offs+1 > r.length()) break;
+          /*String s = r.substring(offs, offs+1);
+          offs += 1;
+          res += romeInts.get(s);*/
+          res += romeInts.get( r.substring(offs++, offs));
+        }
+        return res;
+    }
+
+    //https://www.youtube.com/watch?v=160QH3Gi56Y
+    public static void HashTagSearchSort() {
+       List<String> sour = Arrays.asList( "#Java sldfjsldk dfgds sdfsd #C++",
+                                          "sldfjsldk dfgds #Java sldfjsldk dfgds sdfsd #Delphi #JavaScript",
+                                          "#Java sldfjsldk dfgds sdfsd #JavaScript sldfjsldk dfgds",
+                                          "#JavaScript");
+        hashTagSearchSort( sour);
+    }
+    private static void hashTagSearchSort( List<String> sour) {
+       HashMap<String, Integer> tagMap =  new HashMap<>();
+       sour.forEach( nextStr ->{
+         Stream.of( nextStr.split( " ")).filter( nextWord -> nextWord.startsWith( "#"))
+               .forEach( nextTag -> { tagMap.put( nextTag, tagMap.getOrDefault( nextTag, 0) + 1);});
+       });
+
+       @AllArgsConstructor
+       @ToString
+       class item implements Comparable<item> {
+         private int freq;
+         public String tag;
+         public int compareTo( item i) {
+             if( freq > i.freq) return 1;
+             if( freq < i.freq) return -1;
+             return 0;
+         }
+       }
+
+       ArrayList<item> itemList = new ArrayList<>();
+       tagMap.forEach( (k, v) -> itemList.add( new item( v, k)));
+         Collections.sort( itemList);
+         List<String> res = itemList.stream().map( item -> item.tag).collect( Collectors.toList());
+         System.out.println( "res="+res);
+       res = itemList.stream()
+               .sorted( ( i1, i2)->{ if( i1.freq > i2.freq) return -1;
+                                     if( i1.freq < i2.freq) return 1;
+                                     return 0;})
+               .map( i->i.tag).collect(Collectors.toList());
+       System.out.println( "res="+res);
+
+       Set<Map.Entry<String, Integer>> entrySet = tagMap.entrySet();
+       List<String> res1 = entrySet.stream()
+           .sorted( ( e1, e2)->{ if( e1.getValue() > e2.getValue()) return -1;
+                                 if( e1.getValue() < e2.getValue()) return 1;
+                                 return 0;})
+           .map( e -> e.getKey())
+           .collect(Collectors.toList());
+       System.out.println( "res1="+res1);
+    }
+
+    //15. 3Sum
+    public static void LeetCode_Task15() {
+       //Input: nums = [-1,0,1,2,-1,-4]
+       //Output: [[-1,-1,2],[-1,0,1]]
+       int[] sourArr = { -1,0,1,2,-1,-4};
+       System.out.println( "threeSum( "+Arrays.toString( sourArr)+") = " + threeSum( sourArr));
+       //Input: nums = [0,1,1]
+       //Output: []
+       sourArr = new int[] { 0,1,1};
+       System.out.println( "threeSum( "+Arrays.toString( sourArr)+") = " + threeSum( sourArr));
+       //Input: nums = [0,0,0]
+       //Output: [[0,0,0]]
+       sourArr = new int[] { 0,0,0};
+       System.out.println( "threeSum( "+Arrays.toString( sourArr)+") = " + threeSum( sourArr));
+
+    }
+    private static List<List<Integer>> threeSum( int[] sour) {
+        Arrays.sort( sour); // -4,-1,-1,0,1,2,
+
+        List<List<Integer>> res = new ArrayList<>();
+        for( int i=sour.length-1; i>1; i--) {
+          int l=0, r=i-1;
+          while( l < r) {
+              if (sour[l] + sour[r] + sour[i] > 0) {
+                  r--;
+                  continue;
+              }
+              if (sour[l] + sour[r] + sour[i] < 0) {
+                  l++;
+                  continue;
+              }
+              res.add( Arrays.asList( sour[l], sour[r], sour[i]));
+              break;
+          }
+        }
+        return res;
     }
 
 }

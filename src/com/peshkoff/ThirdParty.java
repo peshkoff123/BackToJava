@@ -37,20 +37,150 @@ package com.peshkoff;
  *
  * - CAP - ConsistensyAvailabilityPartitionTolerance распредСистема в любое время может обеспечить не более 2-ч из 3-х
  *
- * CI/CD:
- *               ContinuousIntegration                           ContinuousDelivery
- * Commit-Build-Unit/IntegrTest-AppImage - FuncTest-UserAcceptanceTest-ConfigurationAutomation-LoadTests-Deploy
+ * - CI/CD:      ContinuousIntegration                           ContinuousDelivery
+ *   Commit-Build-Unit/IntegrTest-AppImage  -  FuncTest-UserAcceptanceTest-ConfigurationAutomation-LoadTests-Deploy
+ *
+ * - WebHook another approach for Client/Server data exchange then Rest, WebSockets
+ *   WebHook: PUSH, EventDriven; no need Poll Server all time
+ *   REST/WebPOLLING: POLL, timeDriven;
+ *   WebSockets: constantly open connection
+ *           - register_URL ->
+ *   Client  <-  HTTP_POST   -  Server
  *
  *
  *
  * */
+// ________________________________ Reactor
+/**
+ * - Reactive Streams Specification:
+ *   interface Publisher<T> {
+ *       void subscribe( Subscriber<T> s)
+ *   }
+ *   interface Subscriber<T> {
+ *       void onSubscribe( Subscription s);
+ *       void onNext( T t);
+ *       void onError( Throwable t);
+ *       void onComplete();
+ *   }
+ *   interface Subscription<T> {
+ *       void request( long l);  // BackPressure
+ *       void cancel();
+ *   }
+ *   interface Processor<T,R> ext Publisher<T>, Subscriber<R> {}
+ *
+ * - Project Reactor: implem-n of Reactive Streams Specification + Reactive Lib
+ *   ReactiveTypes/asynchronous sequence: Mono<T>, Flux<T> implement Publisher; work AFTER call
+ *     Disposable subscribe()/subscribe(..) only.
+ *   - Disposable.dispose()   // to cancel the subscription
+ *   - BaseSubscriber         // alternative to lambdas
+ *     Flux.range(1, 10)
+ *     .doOnRequest( r -> System.out.println("request of " + r))
+ *     .subscribe( new BaseSubscriber<Integer>() {
+ *       @Override
+ *       public void hookOnSubscribe(Subscription subscription) {
+ * 		  System.out.println("Subscribed");
+ * 		  request(1);         // Long.MAX_VALUE - unbounded request (meaning “produce as fast as you can” —  disabling backpressure)
+ *       }
+ *       @Override
+ *       public void hookOnNext(Integer integer) {
+ *         System.out.println( integer);
+ *         cancel();
+ *       }
+ *     });
+ *   - Mono [0, 1];
+ *       Mono<String> m = Mono.just("Only").log
+ *       Mono<Boolean> m = Flux.any( s->s.equals(1))
+ *       Mono<Integer> m = Flux.elementAt( 1).subscribe()
+ *   - Flux[0, n]; abstract class Flux<T> ext CorePublisher<T>
+ *       Flux<String> f = Flux.fromIterable( List.of( "1","2","3"))
+ *                            .map(String::toUpperCase())             // map values + ret Flux
+ *                            .flatMap( s-> Flux.just( s.split("")))  // flatMap + ret Flux
+ *                            .filter( s-> s.length() > 0)            // filter + ret Flux
+ *                            .delayElements( Duration.ofMillis(1000))
+ *                            .log()                                  // log + ret Flux
+ *    Flux<String> f = Flux.fromArray( arr)
+ *       Flux<Integer> f = mono.flux()
+ *    Flux.range( 1, 5).subscribe( s->System.out::println)
+ *       Flux.<String>generate( sink ->sink.next("hello"))
+ *           .delayElements( Duration.ofMillis( 500))                 // make to use another Thread
+ *           .take( 4)                                                // 4 iterations
+ *           .subscribe( System.out::println);
+ *    Flux.range(1, 4)
+ *        .map(i -> { if (i <= 3) return i;
+ *                    throw new RuntimeException("Got to 4");  })
+ *        .subscribe( i -> System.out.println(i),                     // onNext
+ *                error -> System.err.println("Error: " + error),     // onError handler
+ *                   () -> System.out.println("Done"));               // omComplete or onError - never both can end the stream!
+ *       Thread.sleep( 4000);
+ *    Flux<String> f1 = Flux.Just( "1", "2").repeat();
+ *    Flux<String> sum = Flux.Just( "A", "B", "C", "D", "E").zipWith( f1, (f,s) -> f+s)
+ *    sum.delayElements( Duration.ofMillis( 1500))
+ *       .timeout( Duration.ofSeconds( 1))
+ *       .retry( 3)                                                   // 3 retry in case of mistake
+ *       .onErrorReturn( "TooSlow")
+ *       .onErrorResume( throwable -> Flux.interval( Duration.ofMillis(300)))
+ *                                        .map( String::valueOf)
+ *       .skip( 2)                                                     // skip first 2 items
+ *       .take( 3)                                                     // stop after next 3 items
+ *       .subscribe( System.out::println)
+ *
+ *  - Synchronous generate:
+ *    public static <T,S> Flux<T> generate(Callable<S> stateSupplier,  BiFunction<S,SynchronousSink<T>,S> generator)
+ *    public interface SynchronousSink<T> {
+ *        void	complete()
+ *        void	error(Throwable e)
+ *        void	next(T t)
+ *    }
+ *    Flux.generate( () -> 0,                          //  Callable<S> stateSupplier
+ *        (state, sink) -> {                // BiFunction<S,SynchronousSink<T>,S> generator)
+ *                           sink.next("3 x " + state + " = " + 3*state);
+ *                           if (state == 10) sink.complete();
+ *                           return state + 1;                            });
+ *  - Asynchronous and Multi-threaded: create - for multiple emissions per round, even from multiple threads.
+ *    public static <T> Flux<T> create(Consumer<? super FluxSink<T>> emitter)
+ *    public interface FluxSink<T>{ methods next, error, complete, + ...}
+ *    Flux.create( sink -> { sink.onRequest( r-> sink.next( "generate/load next value")); })
+ *  - Asynchronous but single-threaded: only one producing thread may invoke next, complete or error at a time.
+ *    public static <T> Flux<T> push(Consumer<? super FluxSink<T>> emitter)
+ *
+ *  - Threading and Schedulers
+ *    By def all works in same Thread until that directly changed:
+ *    - manually
+ *      final Mono<String> mono = Mono.just("hello ");
+ *      Thread t = new Thread( () -> mono
+ *         .map(msg -> msg + "thread ")
+ *         .subscribe( v->System.out.println(v + Thread.currentThread().getName()))  )
+ *      t.start();
+ *      t.join();
+ *    - Scheduler similar to an ExecutorService
+ *      Schedulers.immediate() - current Thread
+ *      Schedulers.single() - single, reusable thread
+ *      Schedulers.boundedElastic() - worker pools and reuses idle ones
+ *        Mono blockingWrapper = Mono.fromCallable( () -> { //make a remote synchronous call;..  return ..; })
+ *        blockingWrapper = blockingWrapper.subscribeOn( Schedulers.boundedElastic());
+ *      Schedulers.fromExecutorService(ExecutorService)
+ *      Schedulers.parallel() - fixed pool of workers as you have CPU cores
+ *        Flux.interval( Duration.ofMillis(300))                               // by def - Schedulers.parallel()
+ *        Flux.interval( Duration.ofMillis(300), Schedulers.newSingle("test")) // in new Thread
+ *      publishOn and subscribeOn: Both take a Scheduler and let you switch the execution context to that scheduler
+ *
+ *  - Testing of Flux and Mono:
+ *    StepVerifier.create( f).expectNext( "1","2","3")
+ *                           .expectNextCount( 3)
+ *                           .verifyComplete()
+ * **/
 // ________________________________ HTTP
 /** https://developer.mozilla.org/ru/docs/Glossary/safe
  * - Идемпотентный метод - не меняет состояние сервера при множестве запросов но возврат может
  *       отличаться - получение данных или статистики
  *   POST/create - NO_idempotent: N identicalRequest = N new records
- *   PUT/update  - idempotent:  N identicalRequest = same result
- *   GET, HEAD, PUT, DELETE - idempotent
+ *   PUT/update  - idempotent: N identicalRequest = same result; change whole resource
+ *   PATCH/update - can be idempotent or NO_idempotent; change resource partially
+ *   GET, HEAD, PUT, DELETE, OPTIONS, HEAD, TRACE - idempotent
+ *   OPTIONS - get parameters connection to resource including list of available methods; no input params
+ *             "HTTP/1.1 200 OK   Allow: OPTIONS, GET, HEAD, POST   Cache-Control: max-age=604800" - answer example
+ *   HEAD - ret headers same as GET request ( Content-Length, Content-Type,..); no input body, no output body;
+ *   TRACE - for debug; ret 200 (ok); no inp/output body
  *
  * - HTTP retCodes
  *   - 100-199 - info
