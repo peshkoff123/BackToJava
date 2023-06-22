@@ -543,7 +543,21 @@ public class Spring {}
  *     return null;
  *   }
  *
- * - Spring WebFlux framework:
+ * - JpaRepository(PagingAndSortingRepository):
+ *   Pageable firstPageWithTwoElements = PageRequest.of(0, 2);
+ *   Pageable sortedByName = PageRequest.of(0, 3, Sort.by("name"));
+ *   Pageable sortedByPriceDesc = PageRequest.of(0, 3, Sort.by("price").descending());
+ *   Pageable sortedByPriceDescNameAsc = PageRequest.of(0, 5, Sort.by("price").descending().and(Sort.by("name")));
+ *   publ interface PersRepository ext JpaRepository/PagingAndSortingRepository<Person, Integer> {
+ *     @Modifying
+ *     @Query("update Person set lastName= :lastName where id= :id")
+ *     void changeLastName( Integer id, String lastName);
+ *     @Query("from Person")
+ *     List<Person> getList( PageRequest pageRequest);
+ *   }
+ * */
+// ________________________________ Spring WebFlux framework
+/**
  *   -Reactive RestController <-> WebClient,
  *   -Reactive WebSocket      <-> WebSocketClient for socket style streaming of Reactive Streams.
  *
@@ -573,8 +587,8 @@ public class Spring {}
  *   employeeFlux.subscribe(System.out::println);
  *
  * - //https://www.youtube.com/watch?v=ECajRLPhVc8 - Почему мы решили переходить на R2DBC и чем это закончилось
- *   @Repository interface MyRep ext R2dbcRepository<Person, Long> {
- *     Flux<Person> findAllByAgeGreaterThan( Integer age);          }
+ *    @Repository interface MyRep ext R2dbcRepository<Person, Long> {
+ *     Flux<Person> findAllByAgeGreaterThan( Integer age);         }
  *   @Entity class Person {
  *     @Id @Column( "id") Long id;
  *     @Column( "age") Integer age;
@@ -592,18 +606,11 @@ public class Spring {}
  *   - R2dbc doesn't provide OnToOne and OneToMany!
  *   - JDBC + R2dbc in single service is POSSIBLE
  *
- * - JpaRepository(PagingAndSortingRepository):
- *   Pageable firstPageWithTwoElements = PageRequest.of(0, 2);
- *   Pageable sortedByName = PageRequest.of(0, 3, Sort.by("name"));
- *   Pageable sortedByPriceDesc = PageRequest.of(0, 3, Sort.by("price").descending());
- *   Pageable sortedByPriceDescNameAsc = PageRequest.of(0, 5, Sort.by("price").descending().and(Sort.by("name")));
- *   publ interface PersRepository ext JpaRepository/PagingAndSortingRepository<Person, Integer> {
- *     @Modifying
- *     @Query("update Person set lastName= :lastName where id= :id")
- *     void changeLastName( Integer id, String lastName);
- *     @Query("from Person")
- *     List<Person> getList( PageRequest pageRequest);
- *   }
+ *   R2DBC not to make system faster but to improve scalability, reliability ( R2DBC - authors)
+ *   - R2DBC slower than JDBC in general
+ *   - R2DBC better in extremal load/sharp growth of load than JDBC
+ *   - WebFlux + R2DBC - allow include clientSide into transaction( should be careful)
+ *   - WebFlux + JDBC - doubtful solution
  * */
 // ________________________________ Spring Cloud
 /**  ClientSideLoadBalancer: SpringCloudLoadBalancer, Ribbon( Netflix, obsolete)

@@ -2,6 +2,7 @@ package com.peshkoff;
 
 import com.sun.deploy.security.BadCertificateDialog;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import sun.awt.windows.WSystemTrayPeer;
 
@@ -10,6 +11,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class LeetCodeTasks {
@@ -54,6 +56,9 @@ public class LeetCodeTasks {
         LeetCode_Task13();
         HashTagSearchSort();
         LeetCode_Task15();
+        LeetCode_Task16();
+        LeetCode_Task17();
+        LeetCode_Task19();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -1560,5 +1565,114 @@ public class LeetCodeTasks {
         }
         return res;
     }
+
+    //16. 3Sum Closest
+    public static void LeetCode_Task16() {
+        //Input: nums = [-1,2,1,-4], target = 1
+        //Output: 2
+        int[] sourArr = {-1,2,1,-4};
+        int target = 1;
+        System.out.println("threeSumClosest( " + Arrays.toString(sourArr)+", "+target + ") = " + threeSumClosest(sourArr, target));
+        //Input: nums = [0,0,0], target = 1
+        //Output: 0
+        sourArr = new int[] {0,0,0};
+        target = 1;
+        System.out.println("threeSumClosest( " + Arrays.toString(sourArr)+", "+target + ") = " + threeSumClosest(sourArr, target));
+    }
+    private static int threeSumClosest( int[] sour, int target) {
+        Arrays.sort( sour); // -4,-1,1,2,
+
+        int res = 0, d = Integer.MAX_VALUE;
+        for( int i=2; i<sour.length; i++) {
+            int l=0, r=i-1;
+            while( l < r) {
+                int _d = Math.abs( (sour[l] + sour[r] + sour[i]) - target);
+                if( _d < d) {
+                    d = _d;
+                    res = sour[l] + sour[r] + sour[i];
+                }
+
+                if (sour[l] + sour[r] + sour[i] > target) {
+                    r--;
+                    continue;
+                }
+                if (sour[l] + sour[r] + sour[i] < target) {
+                    l++;
+                    continue;
+                }
+                return sour[l] + sour[r] + sour[i];
+            }
+        }
+
+        return res;
+    }
+
+    //17. Letter Combinations of a Phone Number
+    public static void LeetCode_Task17() {
+        //Input: digits = "23"
+        //Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
+        char[][] phoneMap = { {'a','b','c'}, {'d','e','f'}, {'g','h','i'}, {'j','k','l'}, {'m','n','o'}, {'p','q','r','s'}, {'t','u','v'}, {'w','x','y','z'}};
+        String digits = "2";
+        List<String> l = new ArrayList<>();
+        letterCombinations( digits, 0, "", phoneMap, l);
+        System.out.println("letterCombinations( " + digits + ") = " + l);
+        //Input: digits = "23"
+        //Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
+        l.clear();
+        digits = "23";
+        letterCombinations( digits, 0, "", phoneMap, l);
+        System.out.println("letterCombinations( " + digits + ") = " + l);
+    }
+    private static void letterCombinations( String digits, int ind, String pref, char[][] phoneMap, List<String> l) {
+        for( char c : phoneMap[ digits.charAt( ind) - '2']) {
+            String s = pref + String.valueOf( c);
+            if (ind == digits.length() - 1)
+                 l.add( s);
+            else letterCombinations(digits, ind + 1, s, phoneMap, l);
+        }
+    }
+
+    //19. Remove Nth Node From End of List
+    @AllArgsConstructor
+    private static class ListNode {
+        int val;
+        ListNode next;
+        public String toString() {
+            return Integer.toString(val);
+        }
+    }
+
+    public static void LeetCode_Task19() {
+        ListNode root = null;
+        for( int i=5; i>0; i--)
+            root = new ListNode( i, root);
+        //Input: head = [1,2,3,4,5], n = 2
+        //Output: [1,2,3,5]
+        int N = 1;
+        System.out.println( "removeNthFromEnd( ["+ListNode_toString( root)+"], "+N+")="+
+                             ListNode_toString( removeNthFromEnd( root, N)));
+    }
+    private static String ListNode_toString( ListNode root) {
+        String res = "";
+        while( root != null) {
+            res += root.toString() + ",";
+            root = root.next;
+        }
+        return res;
+    }
+    private static ListNode removeNthFromEnd( ListNode root, int N) {
+        ArrayList<ListNode> nodeList = new ArrayList<>();
+        ListNode r = root;
+        while( r != null) {
+            nodeList.add( r);
+            r = r.next;
+        }
+        int prev = nodeList.size() - N;
+        if( prev == 0)
+            return root.next;
+        nodeList.get( prev-1).next = nodeList.get( prev).next;
+        return root;
+    }
+
 
 }
