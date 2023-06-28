@@ -589,6 +589,40 @@ package com.peshkoff;
  *   mariadb_data:
  *   wordpress_data:
  */
+// ________________________________ Kafka
+/**
+ *  Kafka - distributed, scalable, reliable log( FIFO)
+ *  NOT allow delete/change record, search by record number ONLY
+ *  KafkaCluster - KafkaNodes + ZookeeperNodes // Obsolete ?
+ *
+ *  Kafka entities
+ *  Topic -     [0..n] Partiotions
+ *  Partition - [0..M] Messages
+ *  Message - { Topic, Partition}: spec by Producer, Key, Value, Headers{[Key:Value]}
+ *            Partition = hash( Key) % NumberOfPartitions
+ *            // Message( Key) -> same Partition + even distribution of load between Partitions/Brokers
+ *            Number of Partitions - level of parallelism
+ *  Batches
+ *
+ *  Replication:
+ *      Broker 1               Broker 2                Broker 3
+ *    Partition 1 (master)   Partition 2 (master)    Partition 3 (master)
+ *    Partition 3 (copy)     Partition 1(copy)       Partition 2 (copy)
+ *
+ *  Write Message depends of reliability
+ *   acks = 0   (fireAndForget) - no acknowledge - loss of Message acceptable
+ *   acks = 1   acknowledge after write in master Partition only; asynchronous replication later
+ *   acks = -1  acknowledge after write in master and replicas Partitions; long; min.insync.replicas=1(2,3)
+ *
+ *  Read Messages
+ *      Topic        ConsumerGroup    or  ConsumerGroup  or  ConsumerGroup
+ *    Partition 1      Consumer            Consumer 1          Consumer 1
+ *    Partition 2    (read all mess)       Consumer 2          Consumer 2
+ *    Partition 3                                              Consumer 3
+ *  OffsetCommit - way of reliable reading; number/offset of consumed and processed Messages;
+ *                 OffsetCommit - record in special Kafka Topic
+ *    ConsumerGroup  -OffsetCommit message-> Kafka
+ * **/
 
  public class ThirdParty {
 }
