@@ -62,6 +62,9 @@ public class LeetCodeTasks {
 
         LeetCode_Task21();
         LeetCode_Task22();
+        LeetCode_Task23();
+        LeetCode_Task24();
+        LeetCode_Task26();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -1706,7 +1709,6 @@ public class LeetCodeTasks {
         System.out.println("removeNthFromEnd( [" + ListNode_toString(root) + "], " + N + ")=" +
                 ListNode_toString(removeNthFromEnd(root, N)));
     }
-
     private static String ListNode_toString(ListNode root) {
         String res = "";
         while (root != null) {
@@ -1715,7 +1717,6 @@ public class LeetCodeTasks {
         }
         return res;
     }
-
     private static ListNode removeNthFromEnd(ListNode root, int N) {
         ArrayList<ListNode> nodeList = new ArrayList<>();
         ListNode r = root;
@@ -1808,5 +1809,107 @@ public class LeetCodeTasks {
          res = res.stream().flatMap( s-> Stream.of( "()"+s, s+"()", "("+s+")")).distinct().collect( Collectors.toList());
 
       return res;
+    }
+
+    public static void LeetCode_Task23() {
+        //Input: lists = [[1,4,5],[1,3,4],[2,6]]
+        //Output: [1,1,2,3,4,4,5,6]
+        ListNode[] lArr = { new ListNode(1, new ListNode(4, new ListNode(5, null))),
+                            new ListNode(1, new ListNode(3, new ListNode(4, null))),
+                            new ListNode(2, new ListNode(6, null))                     };
+        System.out.println( "mergeSortedLists( "+ListArray_toString( lArr)+")="+ListNode_toString( mergeSortedLists( lArr)));
+    }
+    private static String ListArray_toString( ListNode[] lArr) {
+        return Arrays.stream( lArr).map( l -> ListNode_toString( l)+", ").reduce( "", ( r, n) -> r+n);
+    }
+    private static ListNode mergeSortedLists( ListNode[] lArr) {
+        ListNode res = nextMinListNode( lArr);
+        if( res == null) return null;
+
+        ListNode rr = res, r = null;
+        while( (r=nextMinListNode( lArr)) != null ) {
+            rr.next = r;
+            rr = r;
+        }
+
+        return res;
+    }
+    private static ListNode nextMinListNode( ListNode[] lArr) {
+        int min = Integer.MAX_VALUE, minInd = -1;
+        for( int i=0; i< lArr.length; i++) {
+            if( lArr[ i] == null) continue;
+            if( lArr[ i].val < min) {
+                min = lArr[ i].val;
+                minInd = i;
+            }
+        }
+        if( minInd < 0) return null;
+        ListNode res = lArr[ minInd];
+        lArr[ minInd] = lArr[ minInd].next;
+        return res;
+    }
+
+    public static void LeetCode_Task24() {
+        //Input: head = [1,2,3,4]
+        //Output: [2,1,4,3]
+        ListNode l = new ListNode(1, new ListNode(2, new ListNode(3, new ListNode(4, null))));
+        System.out.println( "swapPairs( "+ListNode_toString( l)+")="+ListNode_toString( swapPairs( l)));
+
+        l = new ListNode(1, new ListNode(4, new ListNode(5, null)));
+        System.out.println( "swapPairs( "+ListNode_toString( l)+")="+ListNode_toString( swapPairs( l)));
+    }
+    private static ListNode swapPairs( ListNode l) {
+        if( l == null) return null;
+        if( l.next == null) return l;
+        ListNode a = null, b = l, c = b.next;
+        ListNode res = l.next;
+        while( b != null && b.next != null) {
+            c = b.next;
+            if( a != null)
+                a.next = c;
+            b.next = c.next;
+            c.next = b;
+
+            a = b;
+            b = a.next;
+        }
+        return res;
+    }
+    public static void LeetCode_Task26() {
+        //Input: nums = [0,0,1,1,1,2,2,3,3,4]
+        //Output: 5, nums = [0,1,2,3,4,_,_,_,_,_]
+        int[] nums = {0,0,1,1,1,2,2,3,3,4};
+        System.out.println( "removeDuplicates( "+Arrays.toString( nums)+")="+removeDuplicates( nums)+"; => "+Arrays.toString( nums));
+
+        nums = new int[]{0,0,1,1,1,2,2,3,3,3};
+        System.out.println( "removeDuplicates( "+Arrays.toString( nums)+")="+removeDuplicates( nums)+"; => "+Arrays.toString( nums));
+        //Input: nums = [1,1,2]
+        //Output: 2, nums = [1,2,_]
+        nums = new int[]{1,1,2};
+        System.out.println( "removeDuplicates( "+Arrays.toString( nums)+")="+removeDuplicates( nums)+"; => "+Arrays.toString( nums));
+    }
+    private static int removeDuplicates( int[] sour) {
+       if( sour == null || sour.length < 2) return 0;
+       int res = 0;
+       int srcPos = 0, destPos = 0;
+       int[] dst = new int[ sour.length];
+       for( int i=1; i<sour.length; i++) {
+           if( sour[i] != sour[i-1])  continue;
+           res++;
+           int l = i-srcPos;
+           if( l > 0) {
+               System.arraycopy(sour, srcPos, dst, destPos, l);
+               destPos += l;
+           }
+           srcPos = i+1;
+       }
+       int l = sour.length - srcPos;
+       if( l > 0) {
+           System.arraycopy(sour, srcPos, dst, destPos, l);
+           destPos += l;
+       }
+       System.arraycopy(dst, 0, sour, 0, destPos);
+
+       return res;
     }
 }

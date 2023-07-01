@@ -592,36 +592,185 @@ package com.peshkoff;
 // ________________________________ Kafka
 /**
  *  Kafka - distributed, scalable, reliable log( FIFO)
+ *    Applicable for cases when latest data most valuable and old data - non-relevant any more.
  *  NOT allow delete/change record, search by record number ONLY
  *  KafkaCluster - KafkaNodes + ZookeeperNodes // Obsolete ?
  *
- *  Kafka entities
- *  Topic -     [0..n] Partiotions
- *  Partition - [0..M] Messages
- *  Message - { Topic, Partition}: spec by Producer, Key, Value, Headers{[Key:Value]}
+ *  Kafka entities:
+ *  Cluster - set of Brokers for scaling and replication
+ *  Broker - accept, save, deliver messages; Broker file system:
+ *           ./logs/<TopicName>-<Partition_i>/*.log, *.index, *.timeindex
+ *           *.log:  Offset   Position    Timestamp   Message
+ *                     0         0          ...       Bla
+ *                     1         67         ..        Bla2
+ *           *.index: Offset   Position
+ *                     0         0
+ *                     1         67
+ *           *.timeindex: Timestamp  Offset
+ *                          ..        0
+ *                          ..        1
+ *    Segments: Active - last; files name - start offset( of first record in file); segment timestamp - max message timestamp
+ *              Segment_0/Active/last:{ *.log, *.index, *.timeindex},
+ *              Segment_1:{ *<offs>.log, *<offs>.index, *<offs>.timeindex}, ..,
+ *      Delete by Segments: if( Segment.Timestamp > TTL) delete( Segment)
+ *      Retention by size or date:
+ *      Deleted by retention       _______Alive_________
+ *      Segment_1 <- Segment_2 <- Segment_3 <- Segment_4
+ *  Controller - special Broker( Master) - chooses LeaderReplicas
+ *  Zookeeper - keep up state/work of Cluster; it's a DB for Cluster metadata: Brokers, Partiotions,.. info;
+ *              chooses Controller;
+ *  Topic - logical group of events in natural order (FIFO) for Partition!; [0..n] Partiotions
+ *    Compacted Topics: Kafka deletes/compacts all records for specific Key except last message.
+ *  Partition - for paralleling; configuring parameter; [0..M] Messages;
+ *              Logic: evenly spread all Partitions of all Topics between all Brokers/Servers!
+ *  Message - { Topic, Partition}: spec by Producer;
+ *            Key( optional), Value( byte[]), Timestamp, Headers{[Key:Value]}
  *            Partition = hash( Key) % NumberOfPartitions
  *            // Message( Key) -> same Partition + even distribution of load between Partitions/Brokers
  *            Number of Partitions - level of parallelism
- *  Batches
+ *  Batch - package of Message before write - for speed
  *
- *  Replication:
+ *  Replication: for reliability EXCEPTIONALLY; LeaderPartition -> FollowerPartition
+ *    KafkaController chooses LeaderReplica ( can be configured manually)
+ *                producer -> LeaderReplica -> Consumer  // read/write <-> LeaderReplica ONLY!:
+ *   Follower_i  <-asyncPull- LeaderReplica  // pulls Leader for update - Not new Leader( may miss some data)
+ *     Follower_i <-syncPush- LeaderReplica  // In-SyncReplica( ISR Follower) - new Leader; slower record
+ *                                           // min.insync.replicas=3 = replication-factor - 1
+ *    replication-factor=3:
  *      Broker 1               Broker 2                Broker 3
  *    Partition 1 (master)   Partition 2 (master)    Partition 3 (master)
  *    Partition 3 (copy)     Partition 1(copy)       Partition 2 (copy)
  *
- *  Write Message depends of reliability
- *   acks = 0   (fireAndForget) - no acknowledge - loss of Message acceptable
- *   acks = 1   acknowledge after write in master Partition only; asynchronous replication later
- *   acks = -1  acknowledge after write in master and replicas Partitions; long; min.insync.replicas=1(2,3)
+ *  Send/Write Message:
+ *    Producer.send( message, acks,) {
+ *     - fetch metadata( Cluster state, Topic placement) from Zookeeper;
+ *       expensive and block operation with timeout=60 sec
+ *     - serialize message: key.serializer, value.serializer (StringSerializer)
+ *     - define Partition: -explicit(manual); -round-robin; - key_hash % n( all mess with same key - in same Partition)
+ *     - compress/zip message
+ *     - accumulate batch;  batch.size=16kB(def),linger.ms(timeout)
+ *   }
+ *   acks = 0  (fireAndForget) - no reception acknowledge - loss of Message acceptable; small reliability
+ *   acks = 1  acknowledge after write in Leader Partition only; asynchronous replication later; mess lost if Leader falls
+ *   acks = -1 acknowledge after write in Leader+In-SyncReplica( ISR Follower) Partitions; long; most reliable;
  *
- *  Read Messages
+ *  Read/Poll Messages: polling by package of mess
+ *   Consumer( ConsumerGroup).poll() {
+ *     - fetch metadata( Cluster state, Topic placement) from Zookeeper;
+ *       expensive and block operation with timeout=60 sec
+ *     - connect to (all) LeaderPartition(s) on (all)Brokers; may be slow in single Thread;
+ *
+ *   }
  *      Topic        ConsumerGroup    or  ConsumerGroup  or  ConsumerGroup
  *    Partition 1      Consumer            Consumer 1          Consumer 1
  *    Partition 2    (read all mess)       Consumer 2          Consumer 2
- *    Partition 3                                              Consumer 3
+ *    Partition 3                                              Consumer 3 // Max 1 consumer per Partition!
  *  OffsetCommit - way of reliable reading; number/offset of consumed and processed Messages;
- *                 OffsetCommit - record in special Kafka Topic
- *    ConsumerGroup  -OffsetCommit message-> Kafka
+ *    ConsumerGroup  -commit offset_of_last_read_message-> Kafka Topic __consumer_offsets
+ *    OffsetCommit - record in special Kafka Topic: __consumer_offsets
+ *    __consumer_offsets:[{ Topic/Partition, Group, Offset}]
+ *    Delivery semantics = Commit types:
+ *      - at most once  - autoCommit
+ *      - at least once - manualCommit
+ *      - exactly once  - customCommit - idempotence
+ *    Commit types:
+ *     - autoCommit at most 1 miss mess; commit before data processing; if we CAN loose mess
+ *     - manualCommit at least 1 duplicate mess; if we CAN process 1 mess several times( idempotence needed)
+ *     - customCommit management; controll OffsetCommit manually; exactly once not missed, not duplicate;
+ *
+ *  KafkaStreams:
+ *  - stateless( inpMessage -map-> outputMessage);
+ *    KafkaStreams Split:
+ *     KStream<> sour = ..
+ *     KStream<> out1 = sour.mapValues(..).to(..);                  // Split sor to several outStreams
+ *     KStream<> out2 = sour.filter(..).mapValues(..).forEach(..);  // in distract to Java Streams API
+ *        gain().split().branch( (key,val)->key.contains("A"), Branched.withConsumer( ks->ks.to("A"))).
+ *                      .branch( (key,val)->key.contains("B"), Branched.withConsumer( ks->ks.to("B"))).
+ *   KafkaStreams Merge:
+ *     KStream<String,Integer> s1 = ..; KStream<String,Integer> s2 = ..; // <String,Integer>!
+ *     KStream<String,Integer> merge = s1.merge( s2);                    // No order of message
+ *  - statefull/localState: based on RocksDB under the hood;
+ *     Facebooks's RocksDB - embedded key/value storage with persistent; LogStructuredMergeTree;
+ *                           similar to TreeMap<K,V>, Keys are sorted, Itertor<Key>, remove range of Keys
+ *    SourceStream -> LocalStore( RocksDB) + ChangeLog( Kafka create additional Stream)?
+ *    Partitioning + localState?
+ *
+ *  KafkaStreams application structure:
+ *   CollectionTier -> Kafka -> AnalysisTier -> Kafka   -> DB/InMemoryDB -> DataAccessTier
+ *                             (KafkaStreams)
+ *  Kafka -> KafkaStreams -> Kafka( DB/InMemoryDB/File also possible)
+ *
+ *
+ *
+ *  KStreams application:
+ *  StreamsConfig config = ..;                 // Setup options
+ *  Topology topology = new StreamsBuilder();  // Topology - sequence of data handlers
+ *   ...build();
+ *                                             // Than are done by Spring-Kafka
+ *  KafkaStreams kStreams = new KafkaStreams( config, topology);
+ *  kStreams.start();
+ *  ...
+ *  kStreams.close();
+ *
+ *  Spring-Kafka application:
+ *  @Service class myService {
+ *    @Bean KafkaStreamsConfiguration
+ *    @Bean Topology
+ *    ..
+ *  }
+ *
+ *  DeadLetterQueue - Topic to store bad(wrong format) messages - to investigate them latter
+ *
+ *  kcat                                  // CLI for Kafka
+ *  kcat -L -b broker:29092 |grep topic   // Metadata for all topics
+ *
+ *  Kafka testing:
+ *  TopologyTestDriver( Topology t, KafkaStreamsConfiguration);  // Special class for testing Topologies and Configuration
+ *  TopologyTestDriver => inputTopic, outputTopic                // Not need KafkaCluster
+ *
+ *
+ * Apache Kafka® is an event streaming platform; EventStreaming - capturing data in real-time
+ * Key capabilities ( implem in distributed, highly scalable, elastic, fault-tolerant, and secure manner.):
+ * - To publish (write) and subscribe to (read) streams of events
+ * - To store streams of events durably and reliably for as long as you want.
+ * - To process streams of events as they occur or retrospectively.
+ *
+ * Kafka is a distributed system of Servers/KafkaCluster and clients, communicate by TCP
+ * Kafka cluster is highly scalable and fault-tolerant: if any of its servers fails, the other servers will take over
+ *   their work to ensure continuous operations without any data loss.
+ *
+ * Servers/KafkaCluster: StorageLayer_Servers/Brokers + KafkaConnect_Servers( import/export data with my DB or other Kafka clusters)
+ * Clients: Kafka Streams library, REST API: allow you to write distributed applications and microservices that read,
+ *   write, and process streams of events in parallel, at scale, and in a fault-tolerant manner even in the case of
+ *   network problems or machine failures.
+ *
+ * Event=message=record - fact that "something happens"
+ *   Event: key, value, timestamp,  metadata headers( optional).
+ *     example: key: "Alice"; value: "Made a payment of $200 to Bob"; timestamp: "Jun. 25, 2020 at 2:06 p.m."
+ *   Same event key  are written to the same partition.
+ *   Kafka guarantees order in partition.
+ *
+ * Producers( client applications) publish/write -events-> Kafka -events-> Consumers subscribe to (read and process)
+ *
+ * Topics - like a folder. Events in a topic can be read as often as needed—unlike traditional messaging systems,
+ *   events are not deleted after consumption. Instead, you define for how long Kafka should retain your events
+ *   through a per-topic configuration setting, after which old events will be discarded.
+ * Topics are Partitioned - topic is spread over a number of different Kafka brokers (for scalability).
+ *   For fault-tolerant and highly-available, Topic can be replicated, even across geo-regions or datacenters.
+ *     A common production setting is a replication factor of 3.
+ *
+ * Kafka API: (+ command line tool)
+ *  - Admin API to manage and inspect topics, brokers, and other Kafka objects.
+ *  - Producer API to publish (write) a stream of events to one or more Kafka topics.
+ *  - Consumer API to subscribe to (read) one or more topics and to process the stream of events produced to them.
+ *  - Kafka Streams API to implement stream processing applications and microservices. It provides higher-level functions
+ *    to process event streams: transformations, stateful operations like aggregations and joins, windowing, processing
+ *    based on event-time, and more. Input is read from one or more topics in order to generate output to one or more
+ *    topics, effectively transforming the input streams to output streams.
+ *  - Kafka Connect API to build and run reusable data import/export connectors that consume (read) or produce (write)
+ *    streams of events from and to external systems and applications so they can integrate with Kafka.
+ *    For example, a connector to a relational database like PostgreSQL. already exist hundreds of ready-to-use connectors
+ *
  * **/
 
  public class ThirdParty {
