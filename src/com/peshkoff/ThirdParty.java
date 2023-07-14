@@ -296,10 +296,12 @@ package com.peshkoff;
  *      <groupId>com.peshkoff</groupId>
  *      <artifactId>myProject</artifactId>
  *      <version>1.0-SNAPSHOT</version>
- *      <packaging>pom</packaging>
+ *      <packaging>pom</packaging>      <!--for modules-->
+ *      <!--packaging>jar</packaging-->
  *      <name>name</name>
  *    <modules>
- *        <module>InnerModule</module>
+ *        <module>kafka-producer</module>
+ *        <module>kafka-consumer</module>
  *    <modules>
  *    <properties/>
  *      <dependencies>
@@ -420,7 +422,11 @@ package com.peshkoff;
  *  - commit - save snapshot into HEAD
  *      git commit -m "My first commit"
  *
+ *  - branch  - create, del, list,..branches
+ *      git branch <newBranchName>
+ *      git branch -d <deleteBranchName>
  *  - checkout - re-point HEAD
+ *      git checkout -b <newBranchName> = git branch <newBranchName> + git checkout <newBranchName>
  *  - reset <commit.REF> - switch to one of previous COMMITs = re-point commit.REF!
  *                         to replace last mistakable commit; should NOT be used after PUSH COMMIT !
  *      --soft   discard-LastCommit;
@@ -429,7 +435,7 @@ package com.peshkoff;
  *      git reset --soft commit.REF
  *  - revert - reverse changes of last COMMIT by NEW_COMMIT
  *      git revert HEAD
- *  - merge - merges two branches, result - new commit
+ *  - merge - merges branch into HEAD, result - new commit, or just move HEAD (Fast-forward merge) if possible
  *                         - com_N+1 - .. - com_M                 <- branch
  *          com_1 - com_N  - com_N+1 - com_merge := com_M         <- HEAD
  *     git checkout <brach_1>  // <- HEAD
@@ -457,14 +463,79 @@ package com.peshkoff;
  *  - push - to remote REPOSITORY
  *  - pull - from remote REPOSITORY
  *
- *  - stash CTRL_X - place uncommited changes on shelve
+ *  - stash CTRL_X - place uncommitted changes on shelve
  *     git stash                       // CTRL_X
  *     git stash save "stash comment"
  *     git stash list                  // see all stack of stashes
  *     git stash apply <number( 0,1)>  // CTRL_V; def number = last
  *     git stash pop                   // CTRL_V + remove that stash
  *  - Itellij/Shelve - direct analogue os git stash
+ *
+ *  - TRUNK( based Dev): feature toggle(тумблер)
+ *     - MASTER/TRUNK/MAIN -> localCopy
+ *     - localCopy -> TRUNK
+ *  - FeatureBranching: short Delivery(Features)
+ *     - MAIN/MAINLINE
+ *     - Feature(s) - one branch per feature: MAIN->F1->PULL_Req->F1->MAIN
+ *  - ForkingStrategy: for openSource Proj; only Proj owners can write into MAIN, anyone can Fork from MAIN
+ *     - MAIN -> fork myMAIN -> do any changes -> PULL_Req -> MAIN
+ *  - ReleaseBranching: waterFlow; noCI/CD; one branch for release( long);
+ *                      low frequency of deploys; support previous releases
+ *     - MAIN - for Production; Release->MASTER
+ *     - HotFixes: MAIN,Release->HotFixes->MAIN,Release
+ *     - Release(s): MAIN->Release->MASTER
+ *     - Feature(s)
+ *  - GitFlow
+ *     - MASTER - for Production; Release->MASTER
+ *     - HotFixes: MASTER->HotFixes->MASTER, DEVELOP
+ *     - Release(s): DEVELOP->Release->MASTER,DEVELOP
+ *     - DEVELOP - contain stable features; Release,MASTER->DEVELOP->Release->MASTER
+ *     - Feature(s) - for newDevelopment;  DEVELOP->featureBranch->DEVELOP->Release->MASTER
+ *  - GitHubFlow=FeatureBranching: for quick releases and CD
+ *     - MAIN -> Feature
+ *     - Feature -> MAIN
+ *  - EnvironmentBranching: separate branch for Testing, Staging, Prod environments? Useless!
+ *
+ *  - CI/CD: GitHub Actions:
+ *    - create folder ".github/workflows" in GitHub repository
+ *    - create file "github-actions-demo.yml" script autorun on PUSH/MERGE_Request into Git or PULL_Request
+ *    - PUSH/MERGE, PULL_Request - events/triggers to run CI/CD pipeline/scripts
+ *  - PULL_Request - ask other people(s) to get my Repo:branch to his Repo:branch
+ *    Logic: 1. create myCode in newBranch locally
+ *           2. push newBranch to Repository
+ *           3. create PULL_Request (in Bitbucket, GitHub,..)
+ *           4. team check/review code and make changes
+ *           5. teamAdmin MERGEs newBranch into Release/Master and close PULL_Request
 **/
+// ________________________________ GitLab
+/** GitLab - opensource: can host src on premise and in cloud version: GitLab.com;
+ *     has all GitLab functions + localDockerRegistry, deploy, releaseManagement, monitoring,..
+ *  GitLabRunner - standalone? App for any OS/containers: executes our scripts/pipelines
+ *     sharedRunners, projectRunners, groupRunners;
+ *     Runner must be assigned(connected) to project in GitLab
+ *     Executor - where CI_script be runned: shell(myPC), docker, ..
+ *  .gitlab-ci.yml - in myProject root dir
+ *    build-job:
+ *        stage: build
+ *       script:
+ *         - echo "Hi $GITLAB_USER_LOGIN"
+ *    test-job1:
+ *        stage: test
+ *       script:
+ *         - echo "Do some tests"
+ *         - sleep 20
+ *    test-job2:
+ *        ..
+ *    deploy-prod:
+ *          stage: deploy
+ *         script:
+*            - echo "Deploy from $CI_COMMIT_BRANCH"
+ *    environment: production
+ *
+ *  CI/CD: purpose: automation, tests/checks/codeInspection before pull/merge request to MASTER
+ *               <-   CI  <-      <-   CD    <-
+ *  Plan -> Code -> Build -> Test -> Release -> Deploy -> Operate ->
+ * **/
 // ________________________________ Docker
 /** Docker - tool to deploy and run app using container. DockerClient(CLI) <- REST_API -> DockerServer
  *
@@ -573,6 +644,20 @@ package com.peshkoff;
  *     expose:
  *       - 3306
  *       - 33060
+ *                 yt_postgres:
+ *                       image: postgres:15
+ *              container_name: yt_postgres
+ *                    env_file:
+ *                     - .env   // envVariables in separate file ".env" - real file name
+ *               yt_project:
+ *                    image: yt_project:latest
+ *           container_name: yt_project_container
+ *               depends_on:  // !
+ *                  - yt_postgres
+ *                 env_file:
+ *                  - $env   // envVariables in separate file: $env; env - configurable variable
+ *                  command: >
+ *                   bash -c "sleep 10 && python manage.py test"
  *   wordpress:
  *     image: wordpress:latest
  *     volumes:
@@ -643,7 +728,7 @@ package com.peshkoff;
  *
  *  Send/Write Message:
  *    Producer.send( message, acks,) {
- *     - fetch metadata( Cluster state, Topic placement) from Zookeeper;
+ *     - fetch metadata( Cluster state, Topic placement - BrokerId) from Zookeeper;
  *       expensive and block operation with timeout=60 sec
  *     - serialize message: key.serializer, value.serializer (StringSerializer)
  *     - define Partition: -explicit(manual); -round-robin; - key_hash % n( all mess with same key - in same Partition)
@@ -656,15 +741,16 @@ package com.peshkoff;
  *
  *  Read/Poll Messages: polling by package of mess
  *   Consumer( ConsumerGroup).poll() {
- *     - fetch metadata( Cluster state, Topic placement) from Zookeeper;
+ *     - fetch metadata( Cluster state, Topic placement, Offset) from Zookeeper;
  *       expensive and block operation with timeout=60 sec
  *     - connect to (all) LeaderPartition(s) on (all)Brokers; may be slow in single Thread;
- *
  *   }
+ *
  *      Topic        ConsumerGroup    or  ConsumerGroup  or  ConsumerGroup
  *    Partition 1      Consumer            Consumer 1          Consumer 1
  *    Partition 2    (read all mess)       Consumer 2          Consumer 2
  *    Partition 3                                              Consumer 3 // Max 1 consumer per Partition!
+ *
  *  OffsetCommit - way of reliable reading; number/offset of consumed and processed Messages;
  *    ConsumerGroup  -commit offset_of_last_read_message-> Kafka Topic __consumer_offsets
  *    OffsetCommit - record in special Kafka Topic: __consumer_offsets
@@ -676,10 +762,114 @@ package com.peshkoff;
  *    Commit types:
  *     - autoCommit at most 1 miss mess; commit before data processing; if we CAN loose mess
  *     - manualCommit at least 1 duplicate mess; if we CAN process 1 mess several times( idempotence needed)
- *     - customCommit management; controll OffsetCommit manually; exactly once not missed, not duplicate;
+ *     - customCommit management; control OffsetCommit manually; exactly once not missed, not duplicate;
+ *
+ *  KafkaProducer:
+ *  Properties props = new Properties();
+ *  props.put("bootstrap.servers", "localhost:9092");
+ *  props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+ *  props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+ *  Producer<K,V> producer = new KafkaProducer<>(props);
+ *  // send - async, aggregate msg in buffer - then send in batch
+ *  producer.send( new ProducerRecord<K,V>(String topic, Integer partition, K key, V value);
+ *     producer.beginTransaction();  // support transactional send
+ *     producer.send(..);
+ *     producer.commitTransaction(); // or  producer.abortTransaction();
+ *  producer.close();
+ *
+ *  Spring KafkaProducer:
+ *  kafkaTemplate = new KafkaTemplate<>( producerFactory( (HashMap)props));
+ *  CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send( topicName, key, msg);
+ *  future.whenComplete((result, ex) -> {
+ *      if (ex == null)
+ *         LOGGER.info("Kafka.sendMessage:=[" + msg + "] with offset=[" + result.getRecordMetadata().offset() + "]");
+ *      else LOGGER.error("Kafka.sendMessageError:=[" + msg + "] : " + ex.getMessage());
+ *  });
+ *
+ *  KafkaConsumer:
+ *      Properties props = new Properties();
+ *      props.setProperty("bootstrap.servers", "localhost:9092");
+ *      props.setProperty("group.id", "test");
+ *      props.setProperty("enable.auto.commit", "true");
+ *      props.setProperty("auto.commit.interval.ms", "1000");
+ *      props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+ *      props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+ *      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+ *      consumer.subscribe(Arrays.asList("foo", "bar"));
+ *      while (true) {
+ *          ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+ *          for (ConsumerRecord<String, String> record : records)
+ *              System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
+ *      }
+ *
+ *  Spring KafkaConsumer:
+ *  @KafkaListener( topicPartitions = @TopicPartition(topic = topicName,
+ *                     partitionOffsets = { @PartitionOffset(partition = "0", initialOffset = "0")}))
+ *  public void quoteListener( @Payload Quote quote,
+ *                            @Header(KafkaHeaders.RECEIVED_PARTITION) int partition) {
+ *      LOGGER.info( String.format( "Kafka.quoteListener( %s); partition=%d", quote, partition));
+ *  }
+ *
+ *  KafkaStreams application structure:
+ *   CollectionTier -> Kafka -> AnalysisTier -> Kafka   -> DB/InMemoryDB -> DataAccessTier
+ *                             (KafkaStreams)
+ *   Kafka -> KafkaStreams -> Kafka( DB/InMemoryDB/File also possible)
+ *
+ *  Spring-KafkaStream application:
+ *  @Service class myService {
+ *    @Bean KafkaStreamsConfiguration
+ *    @Bean Topology
+ *    ..
+ *  }
+ *
+ *  KStreams Java  application:
+ *  Properties conf = new Propertes();
+ *  conf.put( StreamsConfig.APPLICATION_ID_CONFIG,"my-kafka");   // unique name in Kafka Cluster
+ *  conf.put( StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,"broker1:9092,broker2:9092");
+ *  conf.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+ *  conf.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+ *  StreamsConfig config = ..;                 // Setup options
+ *
+ *  StreamsBuilder kBuilder = new StreamsBuilder();
+ *  KStream<String, PlayEvent> kStream = kBuilder.stream( Serdes.String(), playEventSerde, "play-events");
+ *  KTable kTable = kBuilder.table( .., Topic); // KTable - changeLog with only latest value for given key
+ *
+ *  KStream<Long, PlayEvent> playBySongID = kStream
+ *     .filter( (region,event) -> event.getDuration()>someValue)
+ *     .map((key,val) -> KeyValue.pair( val.getID(), val)); // repartition with new key and value
+ *  //  KStream = map,filter,join => KStream
+ *  //  KStream = reduce,aggregate => KTable
+ *  //  KTable  = mapValues,filter,join => KTable
+ *  //  KTable  = toStream => KStream
+ *  //  KStream + KTable =merge,join=> KStream
+ *
+ *  // leftJoin by rule: if( playBySongID.key == songTable.key) use song as a value
+ *  KStream<Long, Song> songPlays = playBySongID.leftJoin( songTable, (playEvent,song)->song,
+ *                                                         Serdes.Long(), playEventSerde/songSerde(?));
+ *  // Count - stateful operation - save data (KTable) to Kafka
+ *  KGroupedTable<Long,Long> gTableByID = songPlays.groupBy((singID,song) -> songID, Serdes.Long(),Serdes.Long());
+ *  gTableByID.count("song-play-count");
+ *  //Reduce or aggregate
+ *  KTable<Song,Long> songPlayCounts = gTableByID.aggregate( TopFiveSongs::new,
+ *    (aggKey,val, aggr)->{ aggr.add(val);return aggr;},
+ *    (aggKey,val, aggr)->{ aggr.remove(val);return aggr;},  // remove data from KGroupedTable - changelogs!
+ *    topFiveserde,
+ *    "top-five-songs"                                      );
+ *  // Windowing by time
+ *  gTableByID.count( TimeWindows.of( TimeUnits.MINUTES.toMillis(5)), "song-play-count-windowed");
+ *
+ *  Topology topology = new StreamsBuilder();  // Topology - sequence of data handlers
+ *   ...build();
+ *                                             // Than are done by Spring-Kafka
+ *  KafkaStreams kStreams = new KafkaStreams( config, topology); //KStream - endless sequence of events
+ *  kStreams.start();
+ *  ...
+ *  kStreams.close();
  *
  *  KafkaStreams:
- *  - stateless( inpMessage -map-> outputMessage);
+ *  - per-record stream processing
+ *  - windowing operations
+ *  - stateless( inpMessage -map-> outputMessage) processing;
  *    KafkaStreams Split:
  *     KStream<> sour = ..
  *     KStream<> out1 = sour.mapValues(..).to(..);                  // Split sor to several outStreams
@@ -689,35 +879,15 @@ package com.peshkoff;
  *   KafkaStreams Merge:
  *     KStream<String,Integer> s1 = ..; KStream<String,Integer> s2 = ..; // <String,Integer>!
  *     KStream<String,Integer> merge = s1.merge( s2);                    // No order of message
- *  - statefull/localState: based on RocksDB under the hood;
+ *  - statefull/localState processing: based on RocksDB under the hood;
  *     Facebooks's RocksDB - embedded key/value storage with persistent; LogStructuredMergeTree;
  *                           similar to TreeMap<K,V>, Keys are sorted, Itertor<Key>, remove range of Keys
  *    SourceStream -> LocalStore( RocksDB) + ChangeLog( Kafka create additional Stream)?
  *    Partitioning + localState?
  *
- *  KafkaStreams application structure:
- *   CollectionTier -> Kafka -> AnalysisTier -> Kafka   -> DB/InMemoryDB -> DataAccessTier
- *                             (KafkaStreams)
- *  Kafka -> KafkaStreams -> Kafka( DB/InMemoryDB/File also possible)
  *
  *
  *
- *  KStreams application:
- *  StreamsConfig config = ..;                 // Setup options
- *  Topology topology = new StreamsBuilder();  // Topology - sequence of data handlers
- *   ...build();
- *                                             // Than are done by Spring-Kafka
- *  KafkaStreams kStreams = new KafkaStreams( config, topology);
- *  kStreams.start();
- *  ...
- *  kStreams.close();
- *
- *  Spring-Kafka application:
- *  @Service class myService {
- *    @Bean KafkaStreamsConfiguration
- *    @Bean Topology
- *    ..
- *  }
  *
  *  DeadLetterQueue - Topic to store bad(wrong format) messages - to investigate them latter
  *

@@ -65,6 +65,16 @@ public class LeetCodeTasks {
         LeetCode_Task23();
         LeetCode_Task24();
         LeetCode_Task26();
+
+        LeetCode_Task27();
+        LeetCode_Task28();
+        LeetCode_Task29();
+        LeetCode_Task32();
+        LeetCode_Task34();
+
+        LeetCode_Task35();
+        LeetCode_Task36();
+        LeetCode_Task37();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -1911,5 +1921,364 @@ public class LeetCodeTasks {
        System.arraycopy(dst, 0, sour, 0, destPos);
 
        return res;
+    }
+
+    //27. Remove Element
+    public static void LeetCode_Task27() {
+        //Input: nums = [3,2,2,3], val = 3
+        //Output: 2, nums = [2,2,_,_]
+        int[] nums = {3,3,2,2,3,4};
+        int elem = 3;
+        System.out.println( "removeElement( "+Arrays.toString( nums)+", "+elem+")="+removeElement( nums, elem)+"; => "+Arrays.toString( nums));
+        nums = new int[]{};
+        elem = 3;
+        System.out.println( "removeElement( "+Arrays.toString( nums)+", "+elem+")="+removeElement( nums, elem)+"; => "+Arrays.toString( nums));
+        nums = new int[]{3};
+        elem = 3;
+        System.out.println( "removeElement( "+Arrays.toString( nums)+", "+elem+")="+removeElement( nums, elem)+"; => "+Arrays.toString( nums));
+        //Input: nums = [0,1,2,2,3,0,4,2], val = 2
+        //Output: 5, nums = [0,1,4,0,3,_,_,_]
+        nums = new int[]{0,1,2,2,3,0,4,2};
+        elem = 2;
+        System.out.println( "removeElement( "+Arrays.toString( nums)+", "+elem+")="+removeElement( nums, elem)+"; => "+Arrays.toString( nums));
+    }
+    private static int removeElement( int[] sour, int elem) {
+        if( sour == null || sour.length < 1) return 0;
+        int srcPos = -1, destPos = -1;
+        for( int i=0; i<sour.length; i++) {
+            if( sour[i] != elem) continue;
+
+            if( destPos == -1)
+                destPos = i;
+            int l = i-srcPos;
+            if( l > 0 && srcPos > -1) {
+                System.arraycopy( sour, srcPos, sour, destPos, l);
+                destPos += l;
+            }
+            srcPos = i+1;
+        }
+        int l = sour.length-srcPos;
+        if( l > 0) {
+            System.arraycopy(sour, srcPos, sour, destPos, l);
+            destPos += l;
+        }
+        return destPos;
+    }
+
+    //28. Find the Index of the First Occurrence in a String
+    public static void LeetCode_Task28() {
+        //Input: haystack = "sadbutsad", needle = "sad"
+        //Output: 0
+        String sour = "sadbutsad", sub = "sad";
+        System.out.println( "indexOf( "+sour+", "+sub+")="+indexOf( sour, sub));
+        sour = "qweswadbutsade"; sub = "sade";
+        System.out.println( "indexOf( "+sour+", "+sub+")="+indexOf( sour, sub));
+        //Input: haystack = "leetcode", needle = "leeto"
+        //Output: -1
+        sour = "leetcode"; sub = "leeto";
+        System.out.println( "indexOf( "+sour+", "+sub+")="+indexOf( sour, sub));
+    }
+    private static int indexOf( String sour, String sub) {
+        if( sour == null || sub == null) return -1;
+        if( sour.length() == 0 || sub.length() == 0) return -1;
+        char[] s = sour.toCharArray(), d = sub.toCharArray();
+/*        for( int i=0, j=0; i<s.length; i++)  // works fine
+          if( s[ i] == d[ j]) {
+                 j++;
+                 if( j == d.length) return i-j+1;
+          } else j = 0;
+*/
+        for( int i=0; i<s.length; i++) {
+            if( s[ i] != d[ 0]) continue;
+
+            int beg = 1, end = d.length-1;
+            if( (end-beg)%2 == 0)
+                beg = 0;
+            boolean suc = true;
+            while( beg < end) {
+                if (s[i + beg] == d[beg] && s[i + end] == d[end]) {
+                         beg++; end--;
+                } else { suc = false; break;}
+            }
+            if( suc) return i;
+        };
+
+        return -1;
+    }
+
+    //29. Divide Two Integers
+    public static void LeetCode_Task29() {
+        //Input: dividend = 7, divisor = -3
+        //Output: -2
+        int dividend = 7, divisor = -3;
+        System.out.println( "divide( "+dividend+", "+divisor+")="+divide( dividend, divisor));
+        dividend = 10; divisor = -3;
+        System.out.println( "divide( "+dividend+", "+divisor+")="+divide( dividend, divisor));
+        dividend = 27; divisor = 7;
+        System.out.println( "divide( "+dividend+", "+divisor+")="+divide( dividend, divisor));
+    }
+
+    private static int divide( int dividend, int divisor) {
+        int a = dividend >>> 31, b = divisor >>>31;//a = dividend & (1<<31), b = divisor & (1<<31);
+        if( a == 1)
+            dividend = ~dividend +1;
+        if( b == 1)
+            divisor = ~divisor +1;
+
+        int res = 0;
+        int rem = dividend;
+        while( (rem -= divisor) >= 0)
+            res++;
+
+        int sign = a^b;
+        if( sign == 0) return res;
+        return ~(res-1) | (sign<<31);
+    }
+
+    //32. Longest Valid Parentheses
+    public static void LeetCode_Task32() {
+        //Input: s = "(()"
+        //Output: 2
+        String s = "(()";
+        System.out.println( "longestValidParentheses( "+s+")="+longestValidParentheses( s));
+        //Input: s = ")()())"
+        //Output: 4
+        s = ")()())";
+        System.out.println( "longestValidParentheses( "+s+")="+longestValidParentheses( s));
+        s = ")((())()()))";
+        System.out.println( "longestValidParentheses( "+s+")="+longestValidParentheses( s));
+    }
+    private static int longestValidParentheses( String s) {
+        if( s == null || s.length() < 2) return 0;
+        int l = s.length();
+        if( l % 2 != 0) l--;
+        for( int i=l; i>=2; i -= 2)
+            for( int j=0; j<=s.length()-i; j++) {
+                 int count = 0;
+                 for( int k=j; k<j+i; k++) {
+                     char c = s.charAt( k);
+                     if( c == '(')
+                          count++;
+                     else count--;
+                 }
+                 if( count == 0) return i;
+            }
+        return -1;
+    }
+
+    //34. Find First and Last Position of Element in Sorted Array
+    public static void LeetCode_Task34() {
+        //Input: nums = [5,7,7,8,8,10], target = 8
+        //Output: [3,4]
+        int[] nums = {5,7,7,8,8,8,8,10};
+        int target = 8;
+        int[] res = { -1, -1};
+        findFirstPosition( nums, target, 0, nums.length-1, res);
+        findLastPosition( nums, target, 0, nums.length-1, res);
+        System.out.println( "First and Last Position in Sorted Array:"+Arrays.toString( nums)+"; target="+target+
+                            "; res="+Arrays.toString( res));
+        res = new int[]{ -1, -1};
+        target = 6;
+        findFirstPosition( nums, target, 0, nums.length-1, res);
+        findLastPosition( nums, target, 0, nums.length-1, res);
+        System.out.println( "First and Last Position in Sorted Array:"+Arrays.toString( nums)+"; target="+target+
+                "; res="+Arrays.toString( res));
+    }
+    private static void findFirstPosition( int[] nums, int target, int lPos, int rPos, int[] res) {
+       if( nums == null || nums.length == 0) return;
+       if( lPos == rPos) {
+           if( nums[lPos] == target) res[0] = lPos;
+           return;
+       }
+       if( lPos+1 == rPos) {
+           if (nums[rPos] == target) res[0] = rPos;
+           if (nums[lPos] == target) res[0] = lPos;
+           return;
+       }
+       int m = (lPos+rPos)/2;
+       if( nums[m] > target) {
+           findFirstPosition( nums, target, lPos, m-1, res);
+           return;
+       }
+       if( nums[m] < target) {
+           findFirstPosition( nums, target, m+1, rPos, res);
+           return;
+       }
+       res[0] = m;
+       findFirstPosition( nums, target, lPos, m-1, res);
+    }
+    private static void findLastPosition( int[] nums, int target, int lPos, int rPos, int[] res) {
+        if( lPos == rPos) {
+            if( nums[lPos] == target) res[1] = lPos;
+            return;
+        }
+        if( lPos+1 == rPos) {
+            if (nums[lPos] == target) res[1] = lPos;
+            if (nums[rPos] == target) res[1] = rPos;
+            return;
+        }
+        int m = (lPos+rPos)/2;
+        if( nums[m] > target) {
+            findLastPosition( nums, target, lPos, m-1, res);
+            return;
+        }
+        if( nums[m] < target) {
+            findLastPosition( nums, target, m+1, rPos, res);
+            return;
+        }
+        res[1] = m;
+        findLastPosition( nums, target, m+1, rPos, res);
+    }
+
+    //35. Search Insert Position
+    public static void LeetCode_Task35() {
+        //Input: nums = [1,3,5,6], target = 5
+        //Output: 2
+        int[] nums = {1,3,5,6};
+        int target = 5;
+        System.out.println( "findInsertPosition( "+Arrays.toString(nums)+", "+target+")="+findInsertPosition( nums, target, 0, nums.length-1));
+        target = 4;
+        System.out.println( "findInsertPosition( "+Arrays.toString(nums)+", "+target+")="+findInsertPosition( nums, target, 0, nums.length-1));
+        target = 6;
+        System.out.println( "findInsertPosition( "+Arrays.toString(nums)+", "+target+")="+findInsertPosition( nums, target, 0, nums.length-1));
+        //Input: nums = [1,3,5,6], target = 2
+        //Output: 1
+        nums = new int[]{1,3,5,6};
+        target = 2;
+        System.out.println( "findInsertPosition( "+Arrays.toString(nums)+", "+target+")="+findInsertPosition( nums, target, 0, nums.length-1));
+    }
+    private static int findInsertPosition( int[] nums, int target, int lPos, int rPos) {
+        if( lPos == rPos) {
+            if( nums[lPos] < target) return lPos+1;
+            return lPos;
+        }
+        if( lPos+1 == rPos) {
+            if (nums[lPos] >= target) return lPos;
+            if (nums[rPos] <= target) return rPos+1;
+            return rPos;
+        }
+        int m = (lPos+rPos)/2;
+        if( nums[m] > target)
+            return findInsertPosition( nums, target, lPos, m-1);
+        if( nums[m] < target)
+            return findInsertPosition( nums, target, m+1, rPos);
+        return m;
+    }
+
+    //36. Valid Sudoku
+    private static String[][] board =            //Output: true
+                    {{"5","3",".",".","7",".",".",".","."}
+                    ,{"6",".",".","1","9","5",".",".","."}
+                    ,{".","9","8",".",".",".",".","6","."}
+                    ,{"8",".",".",".","6",".",".",".","3"}
+                    ,{"4",".",".","8",".","3",".",".","1"}
+                    ,{"7",".",".",".","2",".",".",".","6"}
+                    ,{".","6",".",".",".",".","2","8","."}
+                    ,{".",".",".","4","1","9",".",".","5"}
+                    ,{".",".",".",".","8",".",".","7","9"}};
+    public static void LeetCode_Task36() {
+        //Arrays.stream( board).forEach( sArr-> {System.out.println( Arrays.toString( sArr)); });
+        Arrays.stream( board).map( Arrays::toString).forEach( System.out::println);
+        System.out.println( "isValidSudoku() : "+isValidSudoku( board));
+    }
+    private static boolean isValidSudoku( String[][] board){
+       if( !isValidSudokuLines( board, false)) return false;
+       if( !isValidSudokuLines( board, true)) return false;
+
+        for ( int i=0; i<9; i+=3) {
+            for (int j = 0; j<9; j+=3) {
+                boolean[] bArr = new boolean[10];
+                for ( int ii=i; ii<i+3; ii++) {
+                    for (int jj = j; jj < j + 3; jj++) {
+                        String s = board[ii][jj];
+                        if (".".equals(s)) continue;
+                        int v = Integer.parseInt(s);
+                        if (bArr[v]) return false;
+                        bArr[v] = true;
+                    }
+                }
+            }
+        }
+       return true;
+    }
+    private static boolean isValidSudokuLines( String[][] board, boolean isCol){
+        for ( int i=0; i<9; i++) {
+            boolean[] bArr = new boolean[ 10];
+            for (int j = 0; j < 9; j++) {
+                String s = board[i][j];
+                if( isCol) s = board[j][i];
+                if (".".equals(s)) continue;
+                int v = Integer.parseInt(s);
+                if (bArr[v]) return false;
+                bArr[v] = true;
+            }
+        }
+        return true;
+    }
+
+    //37. Sudoku Solver
+    public static void LeetCode_Task37() {
+/*        System.out.println( " "+isRigntValue( 4, 5, 3));
+        System.out.println( " "+isRigntValue( 3, 3, 2));
+        System.out.println( " "+isRigntValue( 1, 1, 5));
+        System.out.println( " "+isRigntValue( 2, 0, 3));
+*/
+        Arrays.stream( board).map( Arrays::toString).forEach( System.out::println);
+        if( solveSudoku())
+             System.out.println("solveSudoku() : ok");
+        else System.out.println("solveSudoku() : impossible");
+        Arrays.stream(board).map(Arrays::toString).forEach(System.out::println);
+
+        System.out.println( "isValidSudoku() : "+isValidSudoku( board));
+    }
+    /*              {{"5","3",".",".","7",".",".",".","."}
+                    ,{"6",".",".","1","9","5",".",".","."}
+                    ,{".","9","8",".",".",".",".","6","."}
+                    ,{"8",".",".",".","6",".",".",".","3"}
+                    ,{"4",".",".","8",".","3",".",".","1"}
+                    ,{"7",".",".",".","2",".",".",".","6"}
+                    ,{".","6",".",".",".",".","2","8","."}
+                    ,{".",".",".","4","1","9",".",".","5"}
+                    ,{".",".",".",".","8",".",".","7","9"}};*/
+    private static boolean solveSudoku() {
+        for ( int i=0; i<9; i++) {
+            for (int j = 0; j<9; j++) {
+                // find next pos to change - nearest "."
+                if( !".".equals(board[i][j])) continue;
+                // check variants
+                for( int val=1; val<10; val++)
+                if( isRigntValue( i, j, val)) {
+                      board[i][j] = Integer.toString(val);
+                      if( solveSudoku()) return true;
+                }
+                board[i][j] = ".";
+                return false;
+            }
+        }
+        return true;
+    }
+    private static boolean isRigntValue( int posX, int posY, int val) {
+        for( int j = 0; j < 9; j++) {
+            String s = board[posX][j];
+            if( ".".equals(s)) continue;
+            if( Integer.parseInt(s) == val)
+                return false;
+        }
+        for( int j = 0; j < 9; j++) {
+            String s = board[j][posY];
+            if( ".".equals(s)) continue;
+            if( Integer.parseInt(s) == val)
+                return false;
+        }
+        int beg_i = 3*((int)posX/3), beg_j = 3*((int)posY/3);
+        for ( int ii=beg_i; ii<beg_i+3; ii++) {
+            for (int jj = beg_j; jj < beg_j + 3; jj++) {
+                String s = board[ii][jj];
+                if( ".".equals(s)) continue;
+                if( Integer.parseInt(s) == val)
+                    return false;
+            }
+        }
+        return true;
     }
 }

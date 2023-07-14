@@ -317,6 +317,10 @@ public class CoreJava {}
 /** - JVM memory:    Heap                        |    PermGen/MetaSpace
  *     Eden -GC-> Survivor -GC-> OldGeneration  |  Classes + ClassLoaders( must be destroyed manually)
  * - switch( type): byte, short, int, and wrappers, String, Enum
+ * - bitwise operations: |, &, ^, ~; <<, >> - signBit unchanged; >>> - signBit unchanged, left bit => 0(instead signBit)
+ *     0b10000000000000000000000000000000 = -2147483648; 0x0B65 - hex
+ *     bits |= (1 << N) - set bit; bits &= ~(1 << N) - clear bit; a >>> 31 - get sign
+ *     doPositive( a): if(a<0) ret ~a+1; doNegative(): ~(a-1) | (1<<31)
  * - Wrappers implement Serializable, Comparable; Number - super for all digitals
  * - Arrays.asList( T[] tArr)
  * - java.lang.reflect. Method, Constructor, Field, Modifier, Parameter

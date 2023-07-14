@@ -543,6 +543,20 @@ public class Spring {}
  *     return null;
  *   }
  *
+ * - @Scheduled(fixedDelay = 1000)       // delay after n millisecond of previous task over
+ *   @Scheduled(fixedDelay = 1000, initialDelay = 1000)
+ *   @Scheduled(fixedRate = 1000)        // fixedRate property runs the scheduled task at every n millisecond.
+ *   @Scheduled(fixedDelayString = "${fixedDelay.in.milliseconds}")
+ *   @Scheduled(fixedRateString = "${fixedRate.in.milliseconds}")
+ *   @Scheduled(cron = "${cron.expression}")
+ *   @Scheduled(cron = "0 15 10 15 * ?", zone = "Europe/Paris")
+ *   public VOID scheduleFixedRateWithInitialDelayTask( VOID) {..}
+ *       @EnableScheduling  // !!!
+ *       @EnableAsync       // to support parallel behavior in scheduled tasks
+ *       public class ScheduledFixedRateExample {
+ *       @Async
+ *       @Scheduled(fixedRate = 1000)    public void scheduleFixedRateTaskAsync() {..}..
+ *
  * - JpaRepository(PagingAndSortingRepository):
  *   Pageable firstPageWithTwoElements = PageRequest.of(0, 2);
  *   Pageable sortedByName = PageRequest.of(0, 3, Sort.by("name"));
