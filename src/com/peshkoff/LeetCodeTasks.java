@@ -75,6 +75,22 @@ public class LeetCodeTasks {
         LeetCode_Task35();
         LeetCode_Task36();
         LeetCode_Task37();
+        
+        //09.08.2023
+        LeetCode_Task40();
+        LeetCode_Task45();
+
+        LeetCode_Task46();
+        LeetCode_Task47();
+        LeetCode_Task49();
+        LeetCode_Task53();
+        LeetCode_Task54();
+
+        // missed:
+        // 55. Jump Game
+
+        //22.10.23
+        PrintEvenOddInTwoThreads();
     }
 
     //https://www.youtube.com/watch?v=W9iMTMeD9uY&list=PLlsMRoVt5sTPCbbIW2QZ-hRMW80lymEYR&index=2
@@ -2280,5 +2296,285 @@ public class LeetCodeTasks {
             }
         }
         return true;
+    }
+
+    //40. Combination Sum II
+    public static void LeetCode_Task40() {
+        // Input: candidates = [10,1,2,7,6,1,5], target = 8
+        // Output: [ [1,1,6],[1,2,5],[1,7],[2,6]]
+        int[] candidates = {1,2,6,1,5};;//{10,1,2,7,6,1,5};
+        int target = 8;
+        Arrays.sort( candidates);
+        List<List<Integer>> resList = new ArrayList<>();
+        combinationSum2( candidates, candidates.length-1, resList, new ArrayList<Integer>(), target);
+        System.out.println( "combinationSum2( "+ Arrays.toString( candidates)+", "+ target+") = "+resList);
+        //Input: candidates = [2,5,2,1,2], target = 5
+        //Output: [[1,2,2],[5]]
+        resList.clear();
+        candidates = new int[]{2,5,2,1,2};
+        target = 5;
+        Arrays.sort( candidates);
+        combinationSum2( candidates, candidates.length-1, resList, new ArrayList<Integer>(), target);
+        System.out.println( "combinationSum2( "+ Arrays.toString( candidates)+", "+ target+") = "+resList);
+    }
+    public static void combinationSum2( int[] cand, int startInd, List<List<Integer>> resList, List<Integer> res, int target) {
+       for( int i=startInd, lastCand=Integer.MAX_VALUE; i>=0; i--) {
+          if( cand[i] == lastCand) continue;
+          lastCand = cand[i];
+          if( cand[i] > target) continue;
+          res.add( cand[i]);
+          if( cand[i] == target)
+               resList.add( new ArrayList<Integer>( res));
+          else combinationSum2( cand, i-1, resList, res, target-cand[ i]);
+          res.remove( res.size()-1);
+       }
+    }
+
+    // 45. Jump Game II
+    private static int minJumps = Integer.MAX_VALUE;
+    public static void LeetCode_Task45() {
+        // Input: nums = [2,3,1,1,4]
+        //Output: 2
+        int[] nums = { 2,3,0,1,4};
+        minJumps = Integer.MAX_VALUE;
+        jumpII( nums, 0, 1);
+        System.out.println( "jumpII( "+ Arrays.toString( nums)+") = "+minJumps);
+    }
+    public static void jumpII( int[] nums, int ind, int jumps) {
+      if( ind + nums[ ind] >= nums.length-1) {
+          if (jumps < minJumps) minJumps = jumps;
+          return;
+      }
+      for( int i=1; i<=nums[ ind]; i++)
+          jumpII( nums, i+ind, jumps+1);
+    }
+
+    //46. Permutations
+    public static void LeetCode_Task46() {
+        //Input: nums = [1,2,3]
+        //Output: [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+        List<List<Integer>> resList = new ArrayList<>();
+        int[] nums = {1,2,3};
+        permute( resList, new LinkedHashSet<Integer>(), nums);
+        System.out.println( "permutations( "+Arrays.toString( nums)+") = "+resList);
+        //Input: nums = [0,1]
+        //Output: [[0,1],[1,0]]
+        resList.clear();
+        nums = new int[] {0,1};
+        permute( resList, new LinkedHashSet<Integer>(), nums);
+        System.out.println( "permutations( "+Arrays.toString( nums)+") = "+resList);
+    }
+    public static void permute( List<List<Integer>> resList, LinkedHashSet<Integer> nextComb, int[] nums) {
+        if( nextComb.size() == nums.length) {
+            resList.add(new ArrayList<>(nextComb));
+            return;
+        }
+
+        for( int i=0; i < nums.length; i++) {
+            if( nextComb.contains( nums[i])) continue;
+            Integer in = new Integer( nums[i]);
+            nextComb.add( in);
+            permute( resList, nextComb, nums);
+            nextComb.remove( in);
+        }
+    }
+
+    //47. Permutations
+    public static void LeetCode_Task47() {
+        List<List<Integer>> resList = new ArrayList<>();
+        int[] nums = {1,2,3};
+        permuteII( resList, new ArrayList<>(nums.length), new HashSet<Integer>(nums.length), nums, new boolean[ nums.length]);
+        System.out.println( "permutationsII( "+Arrays.toString( nums)+") = "+resList);
+        //Input: nums = [1,1,2]
+        //Output: [ [1,1,2],[1,2,1], [2,1,1]]
+        resList.clear();
+        nums = new int[] {1,1,2};
+        permuteII( resList, new ArrayList<>(nums.length), new HashSet<Integer>(nums.length), nums, new boolean[ nums.length]);
+        System.out.println( "permutationsII( "+Arrays.toString( nums)+") = "+resList);
+    }
+    public static void permuteII( List<List<Integer>> resList, List<Integer> nextComb, Set<Integer> uniqNums,
+                                  int[] nums, boolean[] numsUsed) {
+        if( nextComb.size() == nums.length) {
+            if( !resList.contains( nextComb))
+                resList.add( new ArrayList<>(nextComb));
+            return;
+        }
+
+        for( int i=0; i < nums.length; i++) {
+            if( numsUsed[ i]) continue;
+            if( nextComb.size() == 0) {
+                if( uniqNums.contains( nums[i])) continue;
+                uniqNums.add( nums[i]);
+            }
+            nextComb.add( nums[i]);
+            numsUsed[ i] = true;
+            permuteII( resList, nextComb, uniqNums, nums, numsUsed);
+            nextComb.remove( nextComb.size()-1);
+            numsUsed[ i] = false;
+        }
+    }
+
+    //49. Group Anagrams
+    public static void LeetCode_Task49() {
+        //Input: strs = ["eat","tea","tan","ate","nat","bat"]
+        //Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
+        String[] sArr = {"eat","tea","tan","ate","nat","bat"};
+        System.out.println( "groupAnagrams( "+Arrays.toString(sArr)+")="+groupAnagrams( sArr));
+        //Input: strs = [""]
+        //Output: [[""]]
+        sArr = new String[]{""};
+        System.out.println( "groupAnagrams( "+Arrays.toString(sArr)+")="+groupAnagrams( sArr));
+        //Input: strs = ["a"]
+        //Output: [["a"]]
+        sArr = new String[]{"a"};
+        System.out.println( "groupAnagrams( "+Arrays.toString(sArr)+")="+groupAnagrams( sArr));
+    }
+    public static List<List<String>> groupAnagrams( String[] sArr) {
+        HashMap<HashSet<Character>, List<String>> anMap = new HashMap<>();
+        for( String s : sArr) {
+            HashSet<Character> hs = new HashSet<>();
+            char[] cArr = s.toCharArray();
+            for( char c : cArr)
+                hs.add( c);
+            anMap.computeIfAbsent( hs, k->new ArrayList<String>()).add(s);
+            /*List<String> l = anMap.get( hs); // analog - works
+            if( l == null) {
+                l = new ArrayList<String>();
+                anMap.put( hs, l);
+            }
+            l.add( s);*/
+        }
+        return new ArrayList( anMap.values());
+    }
+
+    //53. Maximum Subarray
+    public static void LeetCode_Task53() {
+        //Input: nums = [-2,1,-3,4,-1,2,1,-5,4]
+        //Output: 6
+        int[] nums = {-2,1,-3,4,-1,2,1,-5,4};
+        System.out.println( "maxSubArray( "+ Arrays.toString( nums)+")="+maxSubArray( nums));
+        System.out.println( "maxSubArray2( "+ Arrays.toString( nums)+")="+maxSubArray2( nums, 0, nums.length-1)+" WRONG!");
+        //Input: nums = [5,4,-1,7,8]
+        //Output: 23
+        nums = new int[]{5,4,-1,7,8};
+        System.out.println( "maxSubArray( "+ Arrays.toString( nums)+")="+maxSubArray( nums));
+        System.out.println( "maxSubArray2( "+ Arrays.toString( nums)+")="+maxSubArray2( nums, 0, nums.length-1)+" WRONG!");
+    }
+    public static int maxSubArray( int[] nums) {
+        int maxSum = nums[ 0], sum = nums[ 0];
+        for( int i=1; i<nums.length; i++) {
+            if( nums[i] > nums[i]+sum)
+                 sum = nums[i];
+            else sum = nums[i]+sum;
+            if( sum > maxSum)
+                maxSum = sum;
+        }
+        return maxSum;
+    }
+    // Stupid approach - alogorithm works wrong!!!
+    public static int maxSubArray2( int[] nums, int a, int b) {
+        numInt res = _maxSubArray2( nums, 0, nums.length-1, new numInt( 0, 0, nums));
+        return res.sum;
+    }
+    private static class numInt {
+        public int lInd, rInd, sum;
+        public numInt( int l, int r, int[] nums) {
+            lInd = l; rInd = r;
+            sum = 0;
+            for( int i = lInd; i<= rInd; i++)
+                sum += nums[ i];
+        }
+        public void copy( numInt newVals) { this.sum = newVals.sum; this.lInd = newVals.lInd; this.rInd = newVals.rInd;}
+    }//-2,5,-3,4
+    private static numInt _maxSubArray2( int[] nums, int a, int b, numInt max) {
+        if( a == b) {
+            numInt res = new numInt( a, a, nums);
+            if( res.sum > max.sum) max.copy( res);
+            return res;
+        }
+        int med = (a+b)/2;
+        numInt lSum = _maxSubArray2( nums, a, med, max),
+               rSum = _maxSubArray2( nums, med+1, b, max);
+        numInt _max = null;
+        int midSum = 0;
+        for( int i = lSum.rInd+1; i < rSum.lInd; i++)
+            midSum += nums[ i];
+        if( lSum.sum >= rSum.sum) {
+            _max = lSum;
+            if( rSum.sum + midSum >= 0)
+                 _max = new numInt( lSum.lInd, rSum.rInd, nums);
+        } else {
+            _max = rSum;
+            if( lSum.sum + midSum >= 0)
+                _max = new numInt( lSum.lInd, rSum.rInd, nums);
+        }
+
+        if( _max.sum > max.sum) max.copy( _max);
+
+        return _max;
+    }
+
+    // 54. Spiral Matrix
+    public static void LeetCode_Task54() {
+        // Input: matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]
+        // Output: [1,2,3,4,8,12,11,10,9,5,6,7]
+        int[][] matrix = { {1,2,3,4},
+                           {5,6,7,8},
+                           {9,10,11,12}};
+        Arrays.stream( matrix).map( Arrays::toString).forEach( System.out::println);
+        System.out.println( "spiralOrder() = "+spiralOrder( matrix));
+    }
+    public static List<Integer> spiralOrder( int[][] nums) {
+        int x0 = 0, y0 = 0, xN = nums[0].length-1, yN = nums.length-1;
+        List<Integer> res = new ArrayList<>( xN*yN);
+        while( xN-x0 >= 0 && yN-y0 >= 0) {
+            for( int x=x0; x < xN; x++)
+                res.add( nums[y0][x]);
+            for( int y=y0; y < yN; y++)
+                res.add( nums[y][xN]);
+            for( int x=xN; x > x0; x--)
+                res.add( nums[yN][x]);
+            for( int y=yN; y > y0; y--)
+                res.add( nums[y][x0]);
+            x0++; y0++; xN--; yN--;
+        }
+
+        return res;
+    }
+
+    static class Printer implements Runnable {
+        int count = 0;
+        public void run() {
+            while( count < 10) {
+                if( Thread.currentThread().getName().equals( "evenThreadName"))
+                    printEven();
+                else printOdd();
+            }
+        }
+        public synchronized void printEven() {
+            if( count%2 == 0) {
+                System.out.println(Thread.currentThread().getName()+" count = "+count);
+                count++;
+                this.notify();
+            }
+            try{ this.wait();
+            } catch ( Exception ex) { ex.printStackTrace();}
+        }
+        public synchronized void printOdd() {
+            if( count%2 != 0) {
+                System.out.println(Thread.currentThread().getName()+" count = "+count);
+                count++;
+                this.notify();
+            }
+            try{ this.wait();
+            } catch ( Exception ex) { ex.printStackTrace();}
+        }
+    }
+    public static void PrintEvenOddInTwoThreads(){
+        System.out.println( "PrintEvenOddInTwoThreads ");
+        Printer p = new Printer();
+        new Thread( p, "evenThreadName").start();
+        new Thread( p, "oddThreadName").start();
+
     }
 }

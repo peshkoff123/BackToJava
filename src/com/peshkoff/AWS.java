@@ -35,6 +35,9 @@ package com.peshkoff;
  *   SQS - SimpleQueueService: no guarantees FIFO;     PullNotification; 256KB - limit;
  *           RetentionPeriod: [1 min..14days],4days-def
  *           VisibilityTimeOut:[30sek..12Hours],30sek-def; implicit call DeleteMessage
+ *         Producer ->            Queue         ->  Consumer
+ *                          Deal-letter-queue :
+ *                  unconsumed msg can get to mainQueue again
  *         FIFO SQS - guarantees FIFO( more expensive)
  *   SNS - SimpleNotificationService: Pub/Sub, Topics, PushNotifications; Sub-rs: HTTP,SMS,eMail,Lambda,SQS,..
  *
@@ -94,14 +97,58 @@ package com.peshkoff;
  *     - Reduced Redundancy - data in one dataCenter
  *     - AmazonGlacier - archive/fileStorage with big latency (3-5 hours)
  *
+ *
+ * AWS API Gateway - single entryPoint for different clients (Web,Mob,Iot)
+ *    Req  <->  API_Gateway <->  API: EC2, ECS, Lambda, anyEndpoints, LoadBalancers
+ *    - publishing, rateLimiting/trafficManagement - throttling, monitoring( CloudWatch), securing: AWS Authorization( IAM), AWS Keys(KMS),
+ *    - Caching for REST only,
+ *    - payment = callsNumber + traffic;
+ *    - for - REST API, - WebSocket API
+ *    - routing on basis of HTTP_methods, URLs, Paths, Ports,...,AWS Keys
+ *
+ * AWS KMS - Key Management Service
+ *
+ * AWS CloudWatch - to monitor health of application:
+ *                - collect Logs and Metrics(centralize logs) of all AWS resources
+ *                - monitor with dashboards
+ *                - automate responce( CloudWatchEvents, Autoscaling)
+ *    LogEvent - Timestamp + eventMessage
+ *    LogStream - List<LogEvents> from single logSource: app, resource, ..
+ *    LogGroup - List<LogStream>
+ *    LogEvents -MetricFilter-> CloudWatch metric
+ *    Retention settings - expiration settings for logs
+ *
+ * AWS CloudFormation - InfrastructureAsCode analog of AWS ServerlessApplicationModel,
+ *     AWS Serverless, AWSCloudDevelopmentKit( JS_code),  Terraform - cloud agnostic!
+ *     All analogs works( compile down) through CloudFormation
+ *   - Templates.yaml(json) describes Resources to create
+ *   - Stacks - logical group of Templates
+ *   - Changesets - diff between prevState and newUpcomingState as result of incrementalUpdate
+ *
+ *
  * AWS ELB - Elastic Load Balancer
- *  - ALB - Application Load Balancer: HTTP,HTTPS <--> Lambda, EC2, ECS; NO VPC
- *  - NLB - Network Load Balancer:     TCP, UDP   <--> elastic=static_IP, EC2; ultra-high performance, TLS offloading, centralized certificate deployment
- *  - GWLB - Gateway Load Balancer: ?
- *  - CLB - Classic Load Balancer: for EC2 network
- *  LoadBalancer:
- *  Listener get request ( Protocol:Port) and redirect to TargetGroup( EC2,ECS,IP,Lambda) accordingly to RoutingRules
- *    HTTPS_Listener - can offload TLS encryption/decryption( HTTPS -> HTTP)
+ *   // https://www.youtube.com/watch?v=VFwLffElIgc
+ *  - ALB - Application Load Balancer: flexible; HTTP, HTTPS, gRPC
+ *          HTTP/S -> Route53(DNS) -> ALB -> TargetGroups
+ *             In Route53(DNS) create aliases for defDNSnamefrom ALB: mydomain.com -alias-> very.long.dns.elb.amazon.com
+ *          HTTP,HTTPS:443( OSI_Layer_7) <-RoutingRules-> TargetGroup( EC2,ECS,IP,Lambda); NO VPC
+ *          InternetFacing/Internal;
+ *          SecurityGroups;
+ *          Listener - route requests by Host(DNS),PATH,Port to TargetGroup( EC2,ECS,IP,Lambda) accordingly to RoutingRules
+ *                   - redirect request Host(DNS)/PATH:Port to another Host(DNS)/PATH:Port
+ *          HTTPS_Listener - can offload TLS encryption/decryption( HTTPS -> HTTP);
+ *          HTTPS_Cerificates view/edit
+ *          HealthCheck fulfils
+ *  - TargetGroup - Named_List<EC2,ECS,IP,Lambda> + settings:{ Instance/Ip/Lambda; Protocol:Port; HealthCheck}
+ *                  -same EC2 in several TargetGroups
+ *                  -HealthCheck does ALB not TargetGroup
+ *  - NLB - Network Load Balancer: ultra-high performance, static IP; TCP, UDP, TLS
+ *          TCP,UDP( OSI_Layer_4) <--> TargetGroups( elastic=static_IP, EC2, ALB)
+ *          InternetFacing/Internal
+ *          Listener - route by Port_ONLY to TargetGroup( elastic=static_IP, EC2, ALB) accordingly to RoutingRules
+ *          TLS offloading, centralized certificate deployment ???
+ *  - GWLB - Gateway Load Balancer: elastic=static_IP, EC2; very specifical
+ *  - CLB - Classic Load Balancer: for EC2 network; obsolete
  *
  *
  * AWS EC2 - ElasticComputeCloud
@@ -122,18 +169,30 @@ package com.peshkoff;
  *        cd /var/www/html                // index.html
  *        sudo vi index.html
  *        wq!
+ * AWS AutoScalingGroup - EC2 autoscaling
  *
  * AWS ECS - Elastic Container Service ( EC2 + Docker):
  *           orchestration service to -deploy, -manage, -scale containerized app;
  *           allows to focus on app not environment;
  *           send your container instance log information to CloudWatch Logs
  *  Cluster - logical and regional group of Tasks or ECS Instances; intention - isolate our app;
+ *            may involve:  AWS Fargate(serverless), EC2, External instances ECS Anywhere;
  *  Instance - EC2 + DockerServer
- *  Task Definition - JSON doc, describes containers (up to 10 containers); analogue of DockerCompose
- *                    DockerContainer/Image  + DRAM + CPU + Ports
- *  Task - instantiation of TaskDefinition; DockerContainer ( runned)
- *  Service - Tasks manager: maintain desired Tasks number, reload terminated/failed Tasks, terminate redundant Tasks; AutoScalingGroup for containers;
- *            creates Tasks on basis: TaskDefinition + serviceDescription
+ *  Task Definition
+ *       - Fargate : JSON doc, describes containers (up to 10 containers); analogue of DockerCompose
+ *                   DockerContainer/Image  + DRAM + CPU + Ports + EnvVariables(+fromFile) + Volumes + HealthCheckSettings
+ *                   + automatically sidecar for CPU and memory monitoring
+ *       - EC2
+ *       - Both - Fargate + EC2
+ *  Task - instantiation of TaskDefinition in some Cluster; DockerContainer ( runned)
+ *         Networking - VPC, Subnets(in Region), SecurityGroups
+ *  Service - Tasks manager:
+ *         creates Tasks on basis: TaskDefinition + serviceDescription
+ *         maintain desired Tasks number, reload terminated/failed Tasks, terminate redundant Tasks;
+ *         AutoScalingGroup for containers: AverageCPU_Utilization, AverageMemoryUtilization;
+ *         deployType: RollingUpdate(OneByOne),AllAtOnce,ByPercent...
+ *         connect/configure to LoadBalancer - DNSname, public_IP;
+ *         no LB - no DNS no IP no TargetGroup; but each Task has its own public_IP
  *  Launch types:
  *  - EC2 LaunchType: EC2 + Docker in Cluster;                        - payment for EC2
  *  - Fargate LaunchType: serverless: WITHOUT EC2 and infrastructure; - payment for runningContainers;
@@ -145,7 +204,26 @@ package com.peshkoff;
  *           use aws_cli to login to AWS + docker push imageName:version
  * AWS EKS - Elastic Container Service for Kubernetes
  *
+ * AWS CodePipeline (similar to Jenkins): automatical build and deploy triggered by commit in GitHub
+ *   -commit-> GitHub -code_+_buildspec.yml->  AWS Code Build  -Zip->  AWS ElasticBeanstalk
+ *             hoock                            in new EC2     deploy
+ *   1. In GitHub: Pom.xml: <build><plugins/><finalName>my-jar-name</finalName>,
+ *                 buildspec.yml
+ *   2. Create ElasticBeanstalk environment
+ *   3. Create CodePipeline
  *
+ * AWS Beanstalk - PlatfAAS for fast and simple deploy of webApps(Java,C#,.., multiContainerDocker!) on popular webServers(Apache,TomCat,Nginx) ;
+ *               - load balancing
+ *               - DNS name
+ *               - autoscale up and down
+ *               - allows to tweak all AWS resources(EC2,storages,..)
+ *               - healthCheck, logs(CloudWatch), monitoring(CPU,mem), alarms, events
+ *   BeanstalkEnvironment provides: 
+ *    1. LoadBalancer - SequrityGroup - AutoScalinGroup - EC2*n - OS + WebServer + HostManager(heath,logs,metrics)
+ *                                                      - DB in SequrityGroup
+ *    2. BeanstalkContainer_1 - AutoScalinGroup - WebApp  <-SQS->  BeanstalkContainer_2 - AutoScalinGroup - WorkerApp
+ *       Client - WebApp <-SQS-> WorkerApp
+ *   
  * AWS Lambda - serverless event-driven compute service;
  *              zero administration, managing, servers for user;
  *              automatic administration, scaling, logging
@@ -191,21 +269,6 @@ package com.peshkoff;
  * - Upload myImage int ECR
  * - Create/update myFunction with myImage
  *
- * AWS API Gateway - publish, monitor( CloudWatch), secure: AWS Authorization( IAM), AWS Keys(KMS),
- *                   Cache for REST only, trafficManagement - throttling
- *                   payment = callsNumber + traffic;
- *                   for - REST API, - WebSocket API
- *  Req  <->  API Gateway[ Cache, CloudWatch]  <->  API: EC2, ECS, Lambda, anyEndpoints
- *
- * AWS CloudWatch Logs - centralize all logs
- *    LogEvent - Timestamp + eventMessage
- *    LogStream - List<LogEvents> from single logSource: app, resource, ..
- *    LogGroup - List<LogStream>
- *    LogEvents -MetricFilter-> CloudWatch metric
- *    Retention settings - expiration settings for logs
- *
- * AWS CloudFormation ?
- * AWS KMS - Key Management Service
  *
  *
  * **/

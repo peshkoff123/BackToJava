@@ -314,7 +314,9 @@ public class CoreJava {}
  *
  * */
 // ________________________________ CoreJava Q_And_A
-/** - JVM memory:    Heap                        |    PermGen/MetaSpace
+/**
+ * - OOP pillars: incapsulation, inheritance, polimorphism, abstraction
+ * - JVM memory:    Heap                        |    PermGen/MetaSpace
  *     Eden -GC-> Survivor -GC-> OldGeneration  |  Classes + ClassLoaders( must be destroyed manually)
  * - switch( type): byte, short, int, and wrappers, String, Enum
  * - bitwise operations: |, &, ^, ~; <<, >> - signBit unchanged; >>> - signBit unchanged, left bit => 0(instead signBit)
@@ -442,3 +444,39 @@ public class CoreJava {}
  *                .exceptionally( err -> (5))
  *                .thenAccept( System.out::println) //output 5
  **/
+/** Java 17
+ * - String s = """
+ *     bla
+ *     values( %d, '%s')""".formatted( intVal, strVal);
+ * - int val = switch( pet) {
+ *    case DOG, CAT -> 4;                          // no break, ->(notLambda)
+ *    case PARROT -> { blockOfCode...; yield 2; }  // yield - new keyWord
+ *    default -> throw new myException();
+ *   }
+ * - if( obj instanceof String s && s.isEmpty()) // String s = (String)obj
+ *   List<String> l; if( l instanceof List<String> ls) {..} // ok
+ *   List<?> l; if( l instanceof List<String> ls) {..} // NOT_ok: List<?> cannot be safely turn to List<String>
+ * - record Point( int a[ anyOtherParams]) {} // equivalent to:
+ *   final class Point {
+ *       pr final int a;                      // no other fields except "int a"!
+ *       publ Point( int a) { this.a = a;}
+ *       publ int a() { ret a;}
+ *       publ bool equals( Object o) { implementation;}
+ *       publ int hashCode() { ret Objects.hash( a);}
+ *       publ void toString() { implementation;}
+ *   }
+ *     record Point( int a[ anyOtherParams]) implem interf { myConstructors(), staticMethods()}
+ *   In serialization used parameterized constructor not reflection
+ *     record A( User u, int a); new A( new User, 1);
+ *   record Pair<T1, T2>( T1 t1, T2 t2) {}
+ * - sealed class Pet permits Cat, Dog, Parrot{...}  // to Seale - запечатать
+ *   non-sealed class Cat extends Pet{..}            // any class can extends Cat
+ *   sealed class Dog {                              // descendants in same file
+ *     final class Collie extends Dog {..}
+ *     final class ChowChow extends Dog {..}
+ *   }
+ *   final class Parrot{..}
+ *
+ *   sealed interface Pet permits Cat, Dog, Parrot{...} // Cat, Dog, Parrot - classes/implementations
+ *
+ */

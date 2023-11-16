@@ -10,7 +10,9 @@ public class DB {}
  *   LEFT (OUTER) JOIN - all rows from left + rows from right + NULLs for missed rights rows
  *   RIGHT (OUTER) JOIN
  *   FULL (OUTER) JOIN - all rows from both + met what possible
- * - SELECT ID, COUNT(*) .. GROUP BY ID,.. HAVING COUNT(*) < 3   //COUNT, MIN, MAX, AVR for groups
+ * - SELECT ID, COUNT(*) .. GROUP BY ID,.. HAVING COUNT(*) < 3   //COUNT, MIN, MAX, AVR - applied for groups if GROUP BY presents
+ * - AggregateFunc - NOT in WHERE (cause WHERE filters earlier);
+ *                 - YES in HAVING
  * - SELECT DISTINCT ..
  * - Нормализация БД нормальные формы  - 6 items of bullSheet
  * - PreparedStatement - SQL_req in DB SQL_cache
@@ -163,6 +165,14 @@ public class DB {}
  *
  *  Write Concern   - acknowledgement when write to replicaSet/shardedCluster
  *  Read Preference - for replicaSet/shardedCluster
+ * 
+ *  Sharding_Replication scheema: each Shard implemented as ReplicaSet
+ * 
+ *  AppServer_M <-> "mongos"_K <-> ConfigServer(Metada for shards)
+ *                             <-> Primary - Secondary_N : ReplicaSet_1
+ *                             <-> Primary - Secondary_N : ReplicaSet_2
+ *                             <-> Primary - Secondary_N : ReplicaSet_3
+ *                      
  * */
 
 

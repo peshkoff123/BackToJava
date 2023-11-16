@@ -40,18 +40,137 @@ package com.peshkoff;
  * - CI/CD:      ContinuousIntegration                           ContinuousDelivery
  *   Commit-Build-Unit/IntegrTest-AppImage  -  FuncTest-UserAcceptanceTest-ConfigurationAutomation-LoadTests-Deploy
  *
- * - WebHook another approach for Client/Server data exchange then Rest, WebSockets
- *   WebHook: PUSH, EventDriven; no need Poll Server all time
- *   REST/WebPOLLING: POLL, timeDriven;
- *   WebSockets: constantly open connection
- *           - register_URL ->
- *   Client  <-  HTTP_POST   -  Server
+ * - Client/Server data exchange:
+ *   - Request/Response API(REST)
+ *   - WebHook  Client    -register_URL->     Server
+ *                 URL  <-events(HTTP_POST)-
+ *     WebHook: PUSH, EventDriven; no need Poll Server all time
+ *     REST/WebPOLLING: POLL, timeDriven;
+ *   - WebSockets  Client      -HandShake(HTTP)->      Server
+ *                           <-Upgrade_to_WebSocket-
+ *                        <-BidirectionalCommunication->
+ *     constantly open connection
+ *   - HTTPStreaming  Client      -Request->       Server
+ *                           <-Multiple_Responses-
  *
- *
- *
+ * - Scrum:
+ *    Roles: - ProductOwner - interface to Client, plans Sprints, priorytizes Tasks; resp for Product
+ *           - ScrumMaster - herds DailyMitings, helps in planning, prioryties; resp for DevProcess
+ *           - Team;
+ *           - ScrumTeam - ProductOwner + ScrumMaster + Team
+ *    Mitings: - SprintPlanning, Grooming(estimation); before Sprint
+ *             - DailyScrum_N, 
+ *             - SprintReview( digEstim), Retrospective; after Sprint
+ *    Artifacts: - ProductBacklog( all tasks); 
+ *               - SprintBacklog
+ *               - ProductIncrement( BurnDown chart) - chart of progress  
+ * - Kanban: TeamLead + Team; mitings are optional; SprintBacklog - flexible( Tasks assign/reassing,..)
  * */
+//_________________________________ BeanUtils
+/** Apache Commons BeansUtils contains all tools for working with Java beans
+ * <dependency>
+ *     <groupId>commons-beanutils</groupId>
+ *     <artifactId>commons-beanutils</artifactId>
+ *     <version>1.9.4</version>
+ * </dependency>
+ * public class Course {
+ *     private String name;
+ *     private List<String> codes;
+ *     private Map<String, Student> enrolledStudent = new HashMap<>();
+ * }
+ * Course course = new Course();
+ * String name = "Computer Science";
+ * List<String> codes = Arrays.asList("CS", "CS01");
+ * PropertyUtils.setSimpleProperty(course, "name", name);
+ * PropertyUtils.setSimpleProperty(course, "codes", codes);
+ * PropertyUtils.setIndexedProperty(course, "codes[1]", "CS02");
+ * PropertyUtils.setMappedProperty(course, "enrolledStudent(ST-1)", student);
+ * String nameValue = (String) PropertyUtils.getNestedProperty( course, "enrolledStudent(ST-1).name");
+ *
+ * CourseEntity courseEntity = new CourseEntity();
+ * BeanUtils.copyProperties(courseEntity, course);// copy the properties with the same name only
+ */
+// ________________________________ ElasticStack( ELK)/Logging
+/** ElasticStack( ELK):
+ *   ElasticSearch
+ *   Kibana - UI graphs and interaction with data for ElasticSearch,
+ *   Logstash - input/transform/stash data to -> ElasticSearch;
+ *              input from <fileName> -> aggr/processing/filtering -> <ElasticSearchURL>
+ *   Beats - data delivery? Beats -> Logstash -> ElasticSearch
+ *   X-pack - monitor, notify, protect
+ *
+ *  Logs/files -> input->filter->output    ->   ElasticSearch
+ *                  LogStash Pipeline    Index
+ *  ElasticSearch -
+ *    - JSON_based( NoSQL) DB to store inputs/logs + search engine
+ *    - REST API <-> myApp
+ *    - Data: logs, metrics, traceFata
+ *    - Notions: - Index: analog of DB
+ *               - Type: table
+ *               - Document: record/row in DB_Table
+ *               - Field - in Document
+ *   - ElasticSearch Cluster secures scalability, reliability
+ *   - for analyses bigData
+ *   - MySQL much slowly then ElasticSearch
+ *
+ *  Full text search - glossary: { word_0 - { docRef_0,..,docRef_m},
+ *                                 ..,
+ *                                 word_n - { docRef_0,..,docRef_m} }
+ * **/
+// ________________________________ Monitoring
+/** Spring Boot Actuator - to expose operational information about the running application — health, metrics,
+ *    info, dump, env, etc.:
+ *       /actuator list of provided endpoints:
+ *       /beans returns all available beans in our BeanFactory
+ *       /env returns the current environment properties
+ *       /heapdump builds and returns a heap dump from the JVM
+ *       /info returns general information
+ *       /logfile returns ordinary application logs
+ *       /threaddump dumps the thread information of the underlying JVM
+ *       ...
+ *       /prometheus returns metrics like the previous one, but formatted to work with a Prometheus server
+ *    Uses HTTP endpoints or JMX beans to interact with it.
+ *    Micrometer is now part of Actuator's dependencies.
+ *    To enable it:  <dependency>
+ *                      <groupId>org.springframework.boot</groupId>
+ *                      <artifactId>spring-boot-starter-actuator</artifactId>
+ *                   </dependency>  //versions are specified in the Spring Boot Bill of Materials (BOM).
+ *    By def available endpoints: /health and /info;
+ *    Enable all endpoints: management.endpoints.web.exposure.include=*. (in application.properties)
+ *                          management.endpoints.web.base-path=/actuator // by def, can be tweaked
+ *    Actuator security - same as any other endpoints:
+ *    @Bean public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+ *              return http.authorizeExchange()
+ *                         .pathMatchers("/actuator/**").permitAll()
+ *                         .anyExchange().authenticated()
+ *                         .and().build();                                                 }
+ *
+ * Micrometer - to monitor JVM( mem, GC, Threads?), caches, ExecutorService, and logging services and
+ *              export data to monitoring system: AWS_Cloudwatch, Prometheus, Grafana, ...
+ *
+ * Prometheus( localhost:8080/actuator/prometheus) - openSource monitoring system:
+ *  - JVM_state: mem, CPU usage, GC, loadedClasses, Threads
+ *  - prometheus.yml - config
+ *  - HTTP_periodical_PULL -> TimeSeriesDB -> Web_UI to visualize, query, monitor all metrics
+ *
+ *  Grafana - visualize data with graphs, send conditional alerts
+ *  Elasticsearch, Prometheus, Graphite, InfluxDB, PostgreSQL, MySQL..
+ *          ->  Grafana: graphs, alert rules to notify by eMail, Slack,..
+ * **/
 // ________________________________ Reactor
 /**
+ * - Core features of Reactive approach
+ *   - asynchronous/unblocking
+ *   - dataStream - eventDrivenStream
+ *   - backPressure in dataStream
+ *   - functional code style
+ * - Browser( subscriber)                          <->  Server( publisher)
+ *   can stop data loading( Subscription.cancel())
+ * - There are two ways to declare endPoints:
+ *   REST=annotation: Browser <-> Controller <-> Service
+ *   Functional:      Browser <-> Router     <-> Handler // alternative way to describe endPoins
+ *      RouterFunctions.route().GET( "/api", handler::handleMethod)
+ *                            .PUT( "/api/{input}", handler::put).build();
  * - Reactive Streams Specification:
  *   interface Publisher<T> {
  *       void subscribe( Subscriber<T> s)
@@ -496,9 +615,10 @@ package com.peshkoff;
  *     - Feature -> MAIN
  *  - EnvironmentBranching: separate branch for Testing, Staging, Prod environments? Useless!
  *
- *  - CI/CD: GitHub Actions:
+ *  - CI/CD: GitHub Actions (analog for Jenkins):
+ *    CI: Build - Test - CodeCoverage - DockerImage - PushToDockerHub - CD: Deploy 
  *    - create folder ".github/workflows" in GitHub repository
- *    - create file "github-actions-demo.yml" script autorun on PUSH/MERGE_Request into Git or PULL_Request
+ *    - create file github-actions-demo.yml(maven.yml) script autorun on PUSH/MERGE_Request into Git or PULL_Request
  *    - PUSH/MERGE, PULL_Request - events/triggers to run CI/CD pipeline/scripts
  *  - PULL_Request - ask other people(s) to get my Repo:branch to his Repo:branch
  *    Logic: 1. create myCode in newBranch locally
@@ -537,6 +657,24 @@ package com.peshkoff;
  *  Plan -> Code -> Build -> Test -> Release -> Deploy -> Operate ->
  * **/
 // ________________________________ Docker
+// C:\Program Files\Docker Toolbox\mongo-docker
+// docker run -d -p 27017:27017 --name mymongo mongo:3.6
+// docker run -d -p 27017:27017 -v "$(pwd)"/mongo-docker:/data/db --name mymongo mongo:3.6
+/* If we are talking about Docker on Windows then we have to take in account the fact that all containers are run on VirtualBox.
+   Before mounting volume to a container we have to be sure that particular folder is available for VirtualBox.
+   Firstly, to define the name of the current running Docker machine, run
+        $ docker-machine.exe  active
+        default
+   Secondly, add shared folder to VirtualBox:
+        $ VBoxManage sharedfolder add default --name "some_project" --hostpath D:\Projects\some_project
+   Thirdly, create the folder
+        $ docker-machine.exe ssh default 'sudo mkdir --parents /d/projects/some_project'
+   Fourthly, mount it:
+        $ docker-machine.exe ssh default 'sudo mount -t vboxsf some_project /d/projects/some_project'
+   Finally, create a container:
+        $ docker run -v //d/projects/some_project://d/projects/some_project -d some-image_name
+ */
+// curl 192.168.99.100:27017
 /** Docker - tool to deploy and run app using container. DockerClient(CLI) <- REST_API -> DockerServer
  *
  *  Virtualization: OS :: Hypervisor :: GuestOS_1 :: App_1           // overhead - GuestOS
@@ -570,29 +708,49 @@ package com.peshkoff;
  *    EXPOSE 8080
  *    ENTRYPOINT ["java","-jar","myjar.jar"]
  *
+ *  Create Docker Image:
+ *  - docker build -t dock-test-jar .    // Dockerfile in this folder
+ *    docker build -t dock-test-jar:1.0 .
  *
- *  docker build -t dock-test-jar .    // Dockerfile in this folder
- *  docker build -t dock-test-jar:1.0 .
- *  mvn spring-boot:build-image        // NO Dockerfile needed - looks better
+ *  - mvn spring-boot:build-image        // NO Dockerfile needed - looks better
  *    //https://www.youtube.com/watch?v=1w1Jv9qssqg - Spring Boot 2.3, a new feature was added that enables you
  *    to create Docker Images from your application using Cloud Native Buildpacks
+ *    There are different maven plugins for createing Docker images:
+ *       //https://www.youtube.com/watch?v=Kx4KQcCNuz8
+ *     - <groupId>org.springframework.boot</groupId> <!-- ? Can specify params as in Dockerfile in pom.xml ?-->
+ * 		 <artifactId>spring-boot-maven-plugin</artifactId>
+ *     - <groupId>io.fabric8<groupId/>               <!-- Can specify params as in Dockerfile in pom.xml -->
+ *       <artifactId>docker-maven-plugin</artifactId>
+ *     - <groupId>com.google.cloud.tools<groupId/>   <!-- Can specify params as in Dockerfile in pom.xml -->
+ *       <artifactId>jib-maven-plugin</artifactId>
+ *         <!-- No need Docker on your PC; Can push images into registry.hub.docker.com/myRepo -->
+ *     Utility to explore DockerImages files: "dive <imageName>"
  *
+ *  Pull to DockerHub
+ *  - DockerHub account : log=peshkoffyahoo; pass="=5ecssQxafmmG+A"
+ *  - logIn from local Docker:
+ *    docker login    //Your password will be stored unencrypted in C:\Users\peshkoff\.docker\config.json
+ *  - docker tag imageName peshkoffyahoo/imageName
+ *    docker tag docker-rest-test:0.0.1-SNAPSHOT peshkoffyahoo/docker-rest-test:1.0 // rename - works
+ *  - docker push peshkoffyahoo/docker-rest-test:1.0 //repository [docker.io/peshkoffyahoo/docker-rest-test]
+ *  - docker pull peshkoffyahoo/docker-rest-test:1.0 // Image is up to date ...
+ *
+ *  docker images
+ *  docker image ls
+ *  docker rmi -f <image>
+ *  docker pull <image>:<version>
+ *
+ *  docker run --name mycont1 imageName -p 3306:3306 -d
  *  docker run -d -p 8080:8080 --name mycont1 docker-rest-test:0.0.1-SNAPSHOT
  *                                       //curl 192.168.99.100:8080/
- *
  *  docker ps                            // runned container list
  *  docker ps -a                         // runned and stopped container list
  *  docker logs contName
  *  docker inspect contName              // get the internal container ip
  *  docker exec -it contName bash        // exec command in runned container
- *
- *  docker images
- *  docker image ls
  *  docker stop contName
+ *  docker restart contName
  *  docker rm -f <container>
- *  docker rmi -f <image>
- *
- *  docker pull ubuntu/chiselled-jre:8-22.04_edge
  *
  *  docker volume create myVolume                 // Volume
  *  docker volume list
@@ -746,6 +904,9 @@ package com.peshkoff;
  *     - connect to (all) LeaderPartition(s) on (all)Brokers; may be slow in single Thread;
  *   }
  *
+ *   ConsumerGroup - to read messages in parallel( singleApp)
+ *   OnePartition - only oneConsumer
+ *   Automatical Rebalance when add/remove Consumer to Group
  *      Topic        ConsumerGroup    or  ConsumerGroup  or  ConsumerGroup
  *    Partition 1      Consumer            Consumer 1          Consumer 1
  *    Partition 2    (read all mess)       Consumer 2          Consumer 2
