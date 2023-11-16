@@ -45,6 +45,17 @@ import java.util.stream.*;
 *  List<>, Set<>, Map<> collect( Collectors.toList()), Collectors.toSet()
 *  bool anyMatch( Predicate<T> :: bool test(t)), bool allMatch(...), bool noneMatch(...)
 *  T res = reduce( T res, BinaryOperator<T> :: T apply( T a, T b))
+*
+*  - Parallel streams - sequential streams are DEFAULT
+*       .parallel() or .parallelStream();
+*       overhead of threads, splits, results collection; Array( ArrayList) - better then other Collections
+*       Arrays.stream( new int[] {1,2,3,4}).parallel().reduce( 5, Integer::sum); // thread1(5+1+2) + thread2(5+3+4) !!!
+*    used ForkJoin.commonPool(); // -D java.util.concurrent.ForkJoinPool.common.parallelism=4
+*
+*    ForkJoinPool customThreadPool = new ForkJoinPool(4);
+*    int sum = customThreadPool.submit( () -> listOfNumbers.parallelStream().reduce(0, Integer::sum)).get();
+*    customThreadPool.shutdown();
+*
  * */
 public class Streams {
     static void runAllTests() {
