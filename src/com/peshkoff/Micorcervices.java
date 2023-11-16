@@ -23,7 +23,7 @@ package com.peshkoff;
  *      - partitioned database architecture and distributedTransactions ( CAP theorem -> eventual consistency based approach)
  *      - more complex testing
  *      - changes involves many services
- *      - configure, deploy, scale, and monitore is much more complex
+ *      - configure, deploy, scale, and monitor is much more complex
  *      - additional services: ServiceDiscovery, LoadBalancer mechanism
  *      - more automation
  **/
@@ -108,16 +108,22 @@ package com.peshkoff;
  *
  * **/
 /**  Handling partial failures
+ *  - Java Netflix Hystrix implements circuitBreaker and other FaultTolerance patterns;
+ *  - Resilience4J - alternative of Hystrix;
+ *    - CircuitBreaker - FaultTolerance
+ *    - RateLimiter - block too frequent request
+ *    - TimeLimiter - time lim for calling remote operation
+ *    - RetryMechanism - AUTO retry failed remote operation
+ *    - Bulkhead - avoid too many concurrent requests
+ *    - Cache - caching of costly remote operations
  *
  *  Partial failures dealing strategies:
  *   - network timeouts ( connectionTimeout, requestTimeout)
  *   - limited number of outstanding requests
  *   - fallback(запасной вариант):
- *      - return cachedData/defValue/emptyValue if realtimeResponce impossible
+ *      - return cachedData/defValue/emptyValue if realtimeResponse impossible
  *      - eventual consistency: put updateRequest into queue while dependency unavailable
  *   - circuitBreaker
- *
- *  Java Netflix Hystrix implements circuitBreaker and all this patterns;
  *
  *  StabilityPatterns:
  *  - RetryPattern
@@ -138,17 +144,20 @@ package com.peshkoff;
  *  Distributed System Data problem:
  *  - Put data into Distributed system
  *    - CAP theorem: or availability/eventualConsistency:
- *                      - EventDrivenArchitecture - Events are consequences of Model changes;
- *                         Transaction -> transaction_1( ModelChange, Event)+..+transaction_N( ModelChange, Event):
- *                         - Shared DB Table change   -> Event
- *                         - DB TransactionLog change -> Event
- *                       - EventSourceArchitecture - Events are Model
- *                   or ACID-style consistency = Distributed Transactions = Two‑phase commit (2PC)
+ *      - EventDrivenArchitecture(=Saga) - Transactions-Events are consequences of Model changes;
+ *        Transaction -> transaction_1( ModelChange, Event)->..->transaction_N( ModelChange, Event) -> Success
+ *               fail <- compensationTran-n_1              <-..<-compensationTran-n_N
+ *          // fail any of consecutive transaction -> series of compensationTransaction !
+ *          // - loose Isolation!
+ *        - Shared DB Table change   -> Event
+ *        - DB TransactionLog change -> Event
+ *      - EventSourceArchitecture - Events are Model
+ *      - ACID-style consistency = Distributed Transactions = Two‑phase commit (2PC)
  *
  *  - Queries data from Distributed system
  *      Solution: MaterializedView - some service aggregate data from multiple services
  * **/
-/** Micorcervices Deployment Strategies
+/** Microservices Deployment Strategies
  *  - Multiple Services per Host
  *    Benefit: - effective using of resources ( DB, JVM, Tomcat)
  *             - simple/fast deploy and start

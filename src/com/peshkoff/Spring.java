@@ -327,6 +327,7 @@ public class Spring {}
  *    - Singleton-создаются сразу при сканировании.
  *    - Prototype-бины обычно создаются только после запроса.
  *    - @Lazy = @Lazy(true) Create Proxy::bean=null; bean created by request/invoke to avoid circular dependency
+ * - Singleton.Prototype - lookUp: multiple injections( appContext.getBean())
  * - Use Interfaces for Beans:
  *    - testing: use mock/stub
  *    - механизм динамических прокси из JDK(например, при создании репозитория через Spring Data)
@@ -660,3 +661,27 @@ public class Spring {}
  *
  * - Def scope of security context is ThreadLocal
  * */
+// ________________________________ Spring OpenAPI/Swagger
+/** springdoc-openapi  library helps to automate the generation of API documentation using spring boot projects.
+ *  springdoc-openapi works by examining an application at runtime to infer API semantics based on spring
+ *  configurations, class structure and various annotations.
+ *    <dependency>
+ *       <groupId>org.springdoc</groupId>
+ *       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+ *       <version>2.2.0</version>
+ *    </dependency>
+ * 		<dependency>    <!-- for WebFlux-->
+ * 			<groupId>org.springdoc</groupId>
+ * 			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+ * 			<version>2.2.0</version>
+ * 		</dependency>
+ *
+ * 	@SpringBootApplication
+ * 	// optional:
+ *  @OpenAPIDefinition( info = @Info( title="OrdersService (WebFlux API)", version = "1.0"))
+ *
+ * http://localhost:8080/v3/api-docs
+ * http://localhost:8080/v3/api-docs.yaml
+ * http://localhost:8080/swagger-ui.html
+ *
+ **/
