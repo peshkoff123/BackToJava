@@ -399,12 +399,6 @@ package com.peshkoff;
 * */
 // ________________________________ ApacheMaven
 /** Maven - framework, build tool, everything do plugins,
- *    - mvn install -DskipTests        // to skip running the tests( unit + integration) but still we want to compile them
- *   - mvn install -DskipITs          // to skip running the integration_tests only
- *   - mvn -Dmaven.test.skip package  // to skip the compilation phase; overrides property from POM
- *     <properties>                   // same in POM
- *         <tests.skip>true</tests.skip>
- *     </properties>
  *
  *  Artifact - anyLib(jar) in repository.
  *  Goal - special task, could be connected to a phase or not.
@@ -511,6 +505,30 @@ package com.peshkoff;
  *             <version>4.3.8.RELEASE</version>
  *             <type>pom</type>
  *             <scope>import</scope>
+ *
+ * 
+ * - Surefire Plugin runs the unit tests
+ *   "**\Test*", "**\*Test", "**\*Tests", "**\*TestCase"
+ *   mvn test
+ * - Failsafe Plugin runs the Integration Tests
+ *   "**\IT*", "**\*IT", "**\*ITCase"
+ *   mvn integration-test  // just run IT; build - successful regardless IT fails or not
+ *   mvn verify            // right way; if IT fails - stop(fail) build
+ *
+ *   - mvn install -DskipTests        // to skip all tests( unit + integration) but still we want to compile them
+ *   - mvn install -DskipITs          // to skip IntegrationTests only
+ *     mvn install -DskipITs=true
+ *   - mvn -Dmaven.test.skip package  // to skip the compilation phase; overrides property from POM
+ *     <properties>                   // same in POM
+ *         <tests.skip>true</tests.skip>
+ *     </properties>
+ *   - mvn -Dskip.ut=true verify     // way to skip UT only +
+ *     <build><plugins><plugin>
+ *       <groupId>org.apache.maven.plugins</groupId>
+ *       <artifactId>maven-surefire-plugin</artifactId>
+ *       <configuration>     <skipTests>${skip.ut}</skipTests>
+ *       </configuration>
+ *     </plugin></plugins></build>
  **/
 // ________________________________ Git
 /** Git - for maintaining fileSystemSnapshots at specific time moments
