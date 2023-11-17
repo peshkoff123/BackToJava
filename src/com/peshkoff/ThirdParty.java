@@ -66,6 +66,47 @@ package com.peshkoff;
  *               - ProductIncrement( BurnDown chart) - chart of progress  
  * - Kanban: TeamLead + Team; mitings are optional; SprintBacklog - flexible( Tasks assign/reassing,..)
  * */
+//_________________________________ MainLinuxCommands
+/**
+* - ls                  fileList
+*    ls -l   long: permissions  user  group  size  date  name
+*                  "drwrxr..."   root  root
+*    ls -a   all files + hidden
+* - cd dirName/".."
+* - cp sourFile dstFile             copy files, dirs:
+*   cp a.txt Documents/             copy files
+*   cp -avr Downloads/ Documents/   copy folders
+* - mv sourFile dstFile             move files, dirs:
+*   mv a.txt Documents/             move files and dirs
+* - cat fileName        readOnly open file on screen
+*   cat a.txt | less    read with scroll; q - quit, arrows - scroll
+* - grep searchWord fileName
+*   grep Linux a.txt
+*   grep Linux          search "Linux" in entire current folder
+* - history             list commands history
+* - !numberOfCommand    repeat comm from history
+* - ps                  list of run processes, mem, CPU,..
+*   ps -aux
+* - top                 ps command in descending order of CPU
+* - kill PID            ProcessID from top command
+* - shutdown            turnOff computer
+*   shutdown -t 300     off in 300sec
+*   shutdown now
+* - reboot
+* - sudo criticalCommand: install,rm,..
+* - wget fileURL        download by URL
+* - mkdir newDirName
+* - rmdir deleteEmptyDirName
+* - rm -rf folderWithContentName
+* - pwd                 print working dir: "home/.../curFolder"
+* - passwd              change my password
+* - man <commandName>   manual for commandName
+* - who, w              who are connected(loggedIn); tty - terminal, pts - remote connect
+* - last                log( names, times) of logIn/logOut and reboot
+* - uname -a            Linux name, version,..
+* - df -h               disk free - sizes, gigabytes
+* - clear               clear screen
+* */
 //_________________________________ BeanUtils
 /** Apache Commons BeansUtils contains all tools for working with Java beans
  * <dependency>
@@ -506,7 +547,7 @@ package com.peshkoff;
  *             <type>pom</type>
  *             <scope>import</scope>
  *
- * 
+ *
  * - Surefire Plugin runs the unit tests
  *   "**\Test*", "**\*Test", "**\*Tests", "**\*TestCase"
  *   mvn test
