@@ -107,7 +107,9 @@ package com.peshkoff;
  *     ServiceDiscovery   <-RegisterNewServices -
  *
  * **/
-/**  Handling partial failures
+/**  Handling partial failures/StabilityPatterns:
+ *  - Zipkin UI - soft for tracking executionTime of each microservice
+ *                to detect slow one - performance issue
  *  - Java Netflix Hystrix implements circuitBreaker and other FaultTolerance patterns;
  *  - Resilience4J - alternative of Hystrix;
  *    - CircuitBreaker - FaultTolerance
@@ -118,17 +120,19 @@ package com.peshkoff;
  *    - Cache - caching of costly remote operations
  *
  *  Partial failures dealing strategies:
- *   - network timeouts ( connectionTimeout, requestTimeout)
- *   - limited number of outstanding requests
- *   - fallback(запасной вариант):
+ *   - RetryMechanism - AUTO retry failed remote operation
+ *   - TimeLimiter - network timeouts ( connectionTimeout, requestTimeout)
+ *   - RateLimiter - limited number of requests
+ *   - Fallback(запасной вариант):
  *      - return cachedData/defValue/emptyValue if realtimeResponse impossible
  *      - eventual consistency: put updateRequest into queue while dependency unavailable
- *   - circuitBreaker
+ *   - CircuitBreaker ( Closed, Open, HalfOpen)
+ *   - Bulkhead - avoid too many concurrent requests
  *
  *  StabilityPatterns:
  *  - RetryPattern
  *  - TimeOutPattern
- *  - CircuitBreaker ( Closed, Open, HalfOpen); similar to Decorator
+ *  - CircuitBreaker ( Closed, Open, HalfOpen);
  *  - HandShakingPattern - inform clientService to reduce requests number
  *  - BulkHeadsPattern: - ResourcePerClient ( WebClient, MobClient);
  *                      - ResourcePerApplication = ServicePerContainer/VM

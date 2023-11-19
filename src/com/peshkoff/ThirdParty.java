@@ -53,18 +53,105 @@ package com.peshkoff;
  *   - HTTPStreaming  Client      -Request->       Server
  *                           <-Multiple_Responses-
  *
+ * - BestPractices for REST API ( RichardsonMaturityModel):
+ *   - Versioning ( in URL_path, queryPram, header)
+ *   - Documentation for each version( in Swagger)
+ *   - Using right response codes - HTTP codes
+ *   - Content negotiation right "Context-Type: appl/json" and "accept: appl/xml"
+ *   - ErrorHandling/ErrorResponse : errorCode + message - helps understand what's wrong
+ *   - REST API should be stateless
+ *   - Security: SSL
+ *   - Pagination, Filtering, Sorting instead bulk of data
+ *
  * - Scrum:
- *    Roles: - ProductOwner - interface to Client, plans Sprints, priorytizes Tasks; resp for Product
- *           - ScrumMaster - herds DailyMitings, helps in planning, prioryties; resp for DevProcess
+ *    Roles: - ProductOwner - interface to Client, plans Sprints, prioritizes Tasks; resp for Product
+ *           - ScrumMaster - herds DailyMeetings, helps in planning, priorities; resp for DevProcess
  *           - Team;
  *           - ScrumTeam - ProductOwner + ScrumMaster + Team
- *    Mitings: - SprintPlanning, Grooming(estimation); before Sprint
- *             - DailyScrum_N, 
- *             - SprintReview( digEstim), Retrospective; after Sprint
+ *    Meetings: - SprintPlanning, Grooming(estimation); before Sprint
+ *              - DailyScrum_N,
+ *              - SprintReview( digEsteem), Retrospective; after Sprint
  *    Artifacts: - ProductBacklog( all tasks); 
  *               - SprintBacklog
  *               - ProductIncrement( BurnDown chart) - chart of progress  
- * - Kanban: TeamLead + Team; mitings are optional; SprintBacklog - flexible( Tasks assign/reassing,..)
+ * - Kanban: TeamLead + Team; meetings are optional; SprintBacklog - flexible( Tasks assign/reAssign,..)
+ * */
+// ________________________________ HTTP
+/** https://developer.mozilla.org/ru/docs/Glossary/safe
+ * - Идемпотентный метод - не меняет состояние сервера при множестве запросов но возврат может
+ *       отличаться - получение данных или статистики
+ *   POST/create - NO_idempotent: N identicalRequest = N new records
+ *   PUT/update  - idempotent: N identicalRequest = same result; change whole resource
+ *   PATCH/update - can be idempotent or NO_idempotent; change resource partially
+ *   GET, HEAD, PUT, DELETE, OPTIONS, HEAD, TRACE - idempotent
+ *   OPTIONS - get parameters connection to resource including list of available methods; no input params
+ *             "HTTP/1.1 200 OK   Allow: OPTIONS, GET, HEAD, POST   Cache-Control: max-age=604800" - answer example
+ *   HEAD - ret headers same as GET request ( Content-Length, Content-Type,..); no input body, no output body;
+ *   TRACE - for debug; ret 200 (ok); no inp/output body
+ *
+ * - HTTP retCodes
+ *   - 100-199 - info
+ *   - 200-299 - success:    200 - OK
+ *   - 300-399 - redirect
+ *   - 400-499 - client error: 400 badRequest; 403 forbidden; 404 NotFound
+ *   - 500-599 - server error
+ *
+ * - HTTP/2.0:
+ *  - Binary -
+ *  - Frames - HTTP_message = [1..n] Frames;
+ *     Header{ Length, Type, Flags, StreamID} PayLoad{..}
+ *      Type: Data, Headers, Priority, Rst_Stream, Settings, PushPromise, Ping, GoAway, Window_Update, Continuation
+ *  - Stream - set of Frames with same FrameID; Connection = [1..n] Streams;
+ *  - ServerPush - push data to client cache; 1 request - many response
+ *  - Switch to HTTP 2.0:
+ *      UpgradeRequest: HTTP/1.1_Request              Headers "Connection:Upgrade", "Upgrade:HTTP/2.0"
+ *                      HTTP/1.1_Response retCode=101 Headers "Connection:Upgrade", "Upgrade:HTTP/2.0"
+ * - HTTP/3.0 changes: UDP instead TCP
+ *
+ * - HTTPS = HTTP + TLS( SSL)
+ * - TLS - Transport Layer Security - former SecureSocketLayer;
+ *                                    provides: Encryption + Authentication + Integrity( packageHashCode) of data
+ *    TLS/SSL_Certificate = ServerPublicKey; IssuedTo: Company/Person; IssuedBy: AuthorityCompany; ValidityPeriod;
+ *    SessionKey - symmetricKey much faster than asymmetricKeys; encrypt/decrypt session data exchange
+ *    PublicKey+PrivateKey - asymmetricKeys for initial Handshaking = client checks serverCertificate + generate SessionKey
+ *
+ * - gRPC - binary protocol for microServices faster that JSON/REST; uses ProtoBuf; based on HTTP/2;
+ *          supported by many languages; not supported by browsers yet
+ *
+ * - ProtocolBuffers - binary encoding data format for serialization; rival for JSON;
+ *                     language to describe data format; uses encoded/binary data
+ *    - protofile - data schema description doc
+ *       publisher.proto
+ *         service Publisher { rpc SignBook (SignRequest) ret (SignResponse) }
+ *         message SignRequest { string name=1;}
+ *         message SignResponse { string signature=1;}
+ *
+ * - SSO - Single Sign-On - authentication schema to access multiple trusted but independent app using single ID
+ *   - SAML - SecurityAssertionMarkupLanguage XML protocol;
+ *            SAML_Assertion: encrypted XML{ UserDetails, Athorities} - analog JWT
+ *            Identity providers: Okta, Auth0, oneLogin
+ *   - OpenID connect - Google JWT protocol
+ *
+ * - JWT - JSON WebToken
+ *    header:  { "typ":"JWT", "alg":"HS256"}
+ *    payload: { "id","userName","role","inspire",..}
+ *    signature:"hashCode( header.payload)"
+ *
+ * - CAP - ConsistensyAvailabilityPartitionTolerance распредСистема в любое время может обеспечить не более 2-ч из 3-х
+ * */
+// ________________________________ WEB
+/** HTTP Session: Establish TCP connection; 1-N. HTTP_request <-> HTTP_response;
+ *
+ *  SOAP - simple object access protocol, official standard, XML wrapped into HTTP, FTP, SMTP.
+ *
+ *  REST - stands for representational state transfer. Set of design principals( architecture):
+ *  Client-server
+ *  Resource - data or functionality accessible by static URI
+ *             HTTP methods PUT, GET, POST, DELETE
+ *             PDF, TEXT, JSON, XML wrapped into HTTP package.
+ *  Stateless - server doesn't keep history/state of client, each request is standalone.
+ *  JAX-RS to annotate Java classes to create RESTful web services
+ *  http://localhost:8080/greeting?name=User  ->  {"id":1,"content":"Hello, User!"}
  * */
 //_________________________________ MainLinuxCommands
 /**
@@ -329,83 +416,6 @@ package com.peshkoff;
  *                           .expectNextCount( 3)
  *                           .verifyComplete()
  * **/
-// ________________________________ HTTP
-/** https://developer.mozilla.org/ru/docs/Glossary/safe
- * - Идемпотентный метод - не меняет состояние сервера при множестве запросов но возврат может
- *       отличаться - получение данных или статистики
- *   POST/create - NO_idempotent: N identicalRequest = N new records
- *   PUT/update  - idempotent: N identicalRequest = same result; change whole resource
- *   PATCH/update - can be idempotent or NO_idempotent; change resource partially
- *   GET, HEAD, PUT, DELETE, OPTIONS, HEAD, TRACE - idempotent
- *   OPTIONS - get parameters connection to resource including list of available methods; no input params
- *             "HTTP/1.1 200 OK   Allow: OPTIONS, GET, HEAD, POST   Cache-Control: max-age=604800" - answer example
- *   HEAD - ret headers same as GET request ( Content-Length, Content-Type,..); no input body, no output body;
- *   TRACE - for debug; ret 200 (ok); no inp/output body
- *
- * - HTTP retCodes
- *   - 100-199 - info
- *   - 200-299 - success:    200 - OK
- *   - 300-399 - redirect
- *   - 400-499 - client error: 400 badRequest; 403 forbidden; 404 NotFound
- *   - 500-599 - server error
- *
- * - HTTP/2.0:
- *  - Binary -
- *  - Frames - HTTP_message = [1..n] Frames;
- *     Header{ Length, Type, Flags, StreamID} PayLoad{..}
- *      Type: Data, Headers, Priority, Rst_Stream, Settings, PushPromise, Ping, GoAway, Window_Update, Continuation
- *  - Stream - set of Frames with same FrameID; Connection = [1..n] Streams;
- *  - ServerPush - push data to client cache; 1 request - many response
- *  - Switch to HTTP 2.0:
- *      UpgradeRequest: HTTP/1.1_Request              Headers "Connection:Upgrade", "Upgrade:HTTP/2.0"
- *                      HTTP/1.1_Response retCode=101 Headers "Connection:Upgrade", "Upgrade:HTTP/2.0"
- * - HTTP/3.0 changes: UDP instead TCP
- *
- * - HTTPS = HTTP + TLS( SSL)
- * - TLS - Transport Layer Security - former SecureSocketLayer;
- *                                    provides: Encryption + Authentication + Integrity( packageHashCode) of data
- *    TLS/SSL_Certificate = ServerPublicKey; IssuedTo: Company/Person; IssuedBy: AuthorityCompany; ValidityPeriod;
- *    SessionKey - symmetricKey much faster than asymmetricKeys; encrypt/decrypt session data exchange
- *    PublicKey+PrivateKey - asymmetricKeys for initial Handshaking = client checks serverCertificate + generate SessionKey
- *
- * - gRPC - binary protocol for microServices faster that JSON/REST; uses ProtoBuf; based on HTTP/2;
- *          supported by many languages; not supported by browsers yet
- *
- * - ProtocolBuffers - binary encoding data format for serialization; rival for JSON;
- *                     language to describe data format; uses encoded/binary data
- *    - protofile - data schema description doc
- *       publisher.proto
- *         service Publisher { rpc SignBook (SignRequest) ret (SignResponse) }
- *         message SignRequest { string name=1;}
- *         message SignResponse { string signature=1;}
- *
- * - SSO - Single Sign-On - authentication schema to access multiple trusted but independent app using single ID
- *   - SAML - SecurityAssertionMarkupLanguage XML protocol;
- *            SAML_Assertion: encrypted XML{ UserDetails, Athorities} - analog JWT
- *            Identity providers: Okta, Auth0, oneLogin
- *   - OpenID connect - Google JWT protocol
- *
- * - JWT - JSON WebToken
- *    header:  { "typ":"JWT", "alg":"HS256"}
- *    payload: { "id","userName","role","inspire",..}
- *    signature:"hashCode( header.payload)"
- *
- * - CAP - ConsistensyAvailabilityPartitionTolerance распредСистема в любое время может обеспечить не более 2-ч из 3-х
- * */
-// ________________________________ WEB
-/** HTTP Session: Establish TCP connection; 1-N. HTTP_request <-> HTTP_response;
- *
- *  SOAP - simple object access protocol, official standard, XML wrapped into HTTP, FTP, SMTP.
- *
- *  REST - stands for representational state transfer. Set of design principals( architecture):
- *  Client-server
- *  Resource - data or functionality accessible by static URI
- *             HTTP methods PUT, GET, POST, DELETE
- *             PDF, TEXT, JSON, XML wrapped into HTTP package.
- *  Stateless - server doesn't keep history/state of client, each request is standalone.
- *  JAX-RS to annotate Java classes to create RESTful web services
- *  http://localhost:8080/greeting?name=User  ->  {"id":1,"content":"Hello, User!"}
- * */
 // ________________________________ JMS specification
 /** PointToPoint messaging domain: OneToOne, warranted delivery - noTimingDependency sender/receiver
 *                |       |     -Msg->
@@ -437,6 +447,13 @@ package com.peshkoff;
 *     ConnectionFactory, Destinations( Queue, Topic)
 *
 *  Open source messaging systems:  RabbitMQ, Apache Kafka, Apache ActiveMQ, and NSQ
+*
+*  RabbitMQ Exchange:
+*   Exchange receives Mess from Provider and resends/broadcast them to desired Queues,
+*   accordingly to BindingKey - special routing rules.
+*                              -Mess->  Queue_1  -Mess-> Client_1
+*   Provider -Mess-> Exchange           Queue_2
+ *                             -Mess->  Queue_3  -Mess-> Client_2
 * */
 // ________________________________ ApacheMaven
 /** Maven - framework, build tool, everything do plugins,
