@@ -449,8 +449,9 @@ package com.peshkoff;
 *  Open source messaging systems:  RabbitMQ, Apache Kafka, Apache ActiveMQ, and NSQ
 *
 *  RabbitMQ Exchange:
-*   Exchange receives Mess from Provider and resends/broadcast them to desired Queues,
+*   Exchange receives Mess from Provider and resends/broadcasts/routes them to desired Queues,
 *   accordingly to special routing rules - BindingKey.
+*   Because Provider can't directly broadcast Messages?
 *                    |          |  -Mess->  Queue_1  -Mess-> Client_1
 *   Provider -Mess-> | Exchange |           Queue_2
 *                    |          |  -Mess->  Queue_3  -Mess-> Client_2
