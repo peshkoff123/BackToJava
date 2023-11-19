@@ -450,10 +450,10 @@ package com.peshkoff;
 *
 *  RabbitMQ Exchange:
 *   Exchange receives Mess from Provider and resends/broadcast them to desired Queues,
-*   accordingly to BindingKey - special routing rules.
-*                              -Mess->  Queue_1  -Mess-> Client_1
-*   Provider -Mess-> Exchange           Queue_2
- *                             -Mess->  Queue_3  -Mess-> Client_2
+*   accordingly to special routing rules - BindingKey.
+*                    |          |  -Mess->  Queue_1  -Mess-> Client_1
+*   Provider -Mess-> | Exchange |           Queue_2
+*                    |          |  -Mess->  Queue_3  -Mess-> Client_2
 * */
 // ________________________________ ApacheMaven
 /** Maven - framework, build tool, everything do plugins,
