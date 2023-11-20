@@ -123,11 +123,13 @@ package com.peshkoff;
  *   - RetryMechanism - AUTO retry failed remote operation
  *   - TimeLimiter - network timeouts ( connectionTimeout, requestTimeout)
  *   - RateLimiter - limited number of requests
+ *   - BackPressure - server recommends timelapse between requests
  *   - Fallback(запасной вариант):
  *      - return cachedData/defValue/emptyValue if realtimeResponse impossible
  *      - eventual consistency: put updateRequest into queue while dependency unavailable
  *   - CircuitBreaker ( Closed, Open, HalfOpen)
  *   - Bulkhead - avoid too many concurrent requests
+ *   - Dummy - very simplified provisional version 
  *
  *  StabilityPatterns:
  *  - RetryPattern
