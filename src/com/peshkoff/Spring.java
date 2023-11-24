@@ -103,7 +103,7 @@ public class Spring {}
  *    ctx.close();  // destroys all the beans, releases the locks, and then closes the bean factory
  *  }
  *
- * Stereotypes
+ * Stereotypes( specific role)
  * - @Component - basic, for all Stereotypes classes
  * - @Configuration - JavaConfiguration + @Bean_methods
  * - @Contoller - @RequestMapping's allowed here ONLY
@@ -283,6 +283,21 @@ public class Spring {}
  * */
 // ________________________________ Spring Q_And_A
 /**
+ * - @Value("${valName}") - from properties, systemEnv, commandLine
+ *   // spEL expressions:
+ *   @Value("#{T(class).staticVar}") String s;
+ *   @Value("#{T(class).staticMethod()}")  String s;
+ *   @Value("#{@bean1.beanVar}")  String s;
+ *   @Value("#{@bean1.beanMethod()}") Integer s;
+ *   @Value("#{environment['app.name']}"); @Value("#{systemProperties['my.name']}"); @Value("#{systemEnvironment['my.name']}");
+ * - @Autowired,  @Autowired( required = false) // can't find apropos Bean - UnsatisfiedDependencyExc
+ *   @Qualifier( "exactClassName/BeanName")
+ *       @Autowired List<String> list_1;        // Collections are injectable!
+ *       @Bean List<String> list_1() { ...}
+ *
+ * - @Primary:  - @Bean @Primary; - @Component @Primary
+ *   No @Primary - NoUniqueBeanDefinitionException - several sameClass @Beans declared
+ *
  * - spring-boot-devtools - addLib of Spring for development only - fast restart of application during coding;
  *     reload app when classes in classPath are updated;
  *     uses BaseClassLoader (for unchangeable jar's) + RestartClassLoader (for our classes);
@@ -307,22 +322,24 @@ public class Spring {}
  *   Для теста веб-слоя можно использовать аннотацию @SpringJUnitWebConfig.
  *
  * - @Bean( initMethod, destroyMethod, name( by def methodName), value — алиас для name)
+ *   @Bean( autowireCandidate=false)
  * - LifeCycle of Bean
- *   - Загрузка описаний бинов, создание графа зависимостей
+ *   - SpringConfig loaded, beansClasses loaded + beansDefinitions created, создание графа зависимостей
  *     - BeanFactoryPostProcessors: override bean definitions configured in the application context
- *   - Создание бинов внедряет значения и зависимости
- *     - BeanPostProcessor.postProcessAfterInitialization( Object newBean, String beanName)
- *                        .postProcessBeforeInitialization()
+ *   - Instantiate Beans, inject @Value, @Autowired, Aware interfaces callbacks?
+ *    - BeanPostProcessor.postProcessBeforeInitialization( Object newBean, String beanName) :: Object
  *    - NameBeanAware.setBeanName( newName)
  *      BeanFactoryAware.setBeanFactory( beanFactory)
  *      ApplicationContextAware.setApplicationContext( applicationContext)
  *      @PostConstruct methodDescription
  *      @Bean( initMethod="..")
+ *    - BeanPostProcessor.postProcessAfterInitialization( Object newBean, String beanName) :: Object
  *   - Теперь бин готов к использованию. ApplicationContext.getBean()
  *   - После того как контекст будет закрыт( ApplicationContext.close()), бин уничтожается.
  *      @PreDestroy methodDescription  перед уничтожением вызовется этот метод.
  *      DisposibleBean.destroy(), чтобы очистить ресурсы или убить процессы в приложении.
  *      @Bean( destroyMethod="..") то вызовется и он.
+ *
  * - Как создаются бины: сразу или лениво? Как изменить это поведение?
  *    - Singleton-создаются сразу при сканировании.
  *    - Prototype-бины обычно создаются только после запроса.
@@ -343,11 +360,6 @@ public class Spring {}
  *    Внедрять можно только singleton или prototype.
  * - javax.sql.DataSource interface; source of JDBC_connection/ConnectionPool; use @Bean + manual settings to configure it;
  *
- * - @Autowired,  @Autowired( required = false)
- *   @Qualifier( "exactClassName/BeanName")
- *
- * - @Primary:  - @Bean @Primary; - @Component @Primary
- *   No @Primary - NoUniqueBeanDefinitionException - several sameClass @Beans declared
  *
  * - Exception handling:
  *   - throw new ResponseStatusException( HttpStatus.NOT_FOUND, "Foo Not Found", exc);
@@ -395,6 +407,7 @@ public class Spring {}
  *    .close()                       // call .doClose(): destroy beans, close context syncronously
  *    .registerShutdownHook()        // call .doClose() when JVM shutdown
  *    .stop()                        // propagate stop signal to components - not close()!
+ * - StandaloneAppContext need to be closed manually: call .close() or register shutdown hook with JVM
  *
  * - Versioning REST_Api
  *   - @GetMapping( value="/api", params="version=1")   // by reqParam
@@ -685,3 +698,7 @@ public class Spring {}
  * http://localhost:8080/swagger-ui.html
  *
  **/
+/*
+
+
+* */

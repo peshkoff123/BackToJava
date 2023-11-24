@@ -45,7 +45,7 @@ package com.peshkoff;
  *         has clusterIP "IP-per-pod" model.; min controllable entity
  * - ReplicaSet - obsolete ReplicationController( didn't have selector in its spec);
  *                POD + Container(POD)Number; support spec scale( POD number)
- * - Dwployment - to manage Pods, scale/update runningApp; for stateless/interchangeable Pods/workload
+ * - Deployment - to manage Pods, scale/update runningApp; for stateless/interchangeable Pods/workload
  *                REPLICASET + strategy of PODs update; Strategies:
  *                -Recreate: delete all old PODs then create new PODs,
  *                -RollingUpdate: { delete old POD, create new POD} - update one after one to reach zero downtime
@@ -57,15 +57,16 @@ package com.peshkoff;
  * - PersistentVolumeClaim - request to mount PV;
  *                           accessModes : [ReadWriteOnce(single POD),ReadWriteMany(many PODs)]
  * - StorageClass - parameters to access to storage ( URL, login/password,..); StorageClass: NFS, RBD,..
- * - PV_Provisioner - by PVClain autoCreates PVs of specific size and type and accessModes:ReadWriteMany
+ * - PV_Provisioner - by PVClaim autoCreates PVs of specific size and type and accessModes:ReadWriteMany
  * - Service - netInterface, loadBalancer, serverSideServiceDiscovery for PODs; APIGateway;
- *             outside router for PODs: HTTP <-> POD <-> outsideDB
+ *             outside router for PODs: HTTP <->Service <-> POD_i <-> outsideDB
+ *               //POD is not reachable from outside of Cluster without Service?
  *             parameters: REPLICA SET + portMapping for input traffic
  *             ServiceTypes:
- *             -ClusterIP( def) - one IP inside K8sCluster -> PODs( with diff IPs)
+ *             -ClusterIP( def) - Request -> Service_IP:PORT(inside K8sCluster) -> PODs_IP:PORTs
  *             -NodePort - ClusterIP( autoCreated) + somePort open for all workerNodes in ReplicaSet,
  *             -ExternalName - DNS CNAME Record
- *             -LoadBalancer - for cloudCluster only(AWS, AZURE,GC); able provide outside DNS name
+ *             -LoadBalancer - for cloudCluster only(AWS, AZURE, GC); able provide outside DNS name
  * - Ingress - API object(configuration) maps external HTTP/HTTPS requests to Services;
  *             act in connection with CloudLoadBalancer;
  *           - accepts HTTP/HTTPS traffic and dispatch it to Services; reverseProxy?

@@ -129,7 +129,7 @@ package com.peshkoff;
  *      - eventual consistency: put updateRequest into queue while dependency unavailable
  *   - CircuitBreaker ( Closed, Open, HalfOpen)
  *   - Bulkhead - avoid too many concurrent requests
- *   - Dummy - very simplified provisional version 
+ *   - Dummy - very simplified provisional version
  *
  *  StabilityPatterns:
  *  - RetryPattern
@@ -139,6 +139,7 @@ package com.peshkoff;
  *  - BulkHeadsPattern: - ResourcePerClient ( WebClient, MobClient);
  *                      - ResourcePerApplication = ServicePerContainer/VM
  *                      - ResourcePerEndPoint separateWebClient for eachOutsideResource
+ *
  **/
 /** Distributed Data management:
  *  - Polyglot persistence approach: Service <-> PrivateDB: encapsulated data, loosely coupled services,
